@@ -46,7 +46,7 @@ app.use(generalLimiter);
 
 // ── Root ──────────────────────────────────────────────────────────
 app.get("/", (_req, res) => {
-  res.json({ name: "NovaForge API", version: "0.1.0", docs: "/health", preview: "/preview/:projectId/index.html" });
+  res.redirect("/preview/demo-js/index.html");
 });
 
 // ── Health ────────────────────────────────────────────────────────
