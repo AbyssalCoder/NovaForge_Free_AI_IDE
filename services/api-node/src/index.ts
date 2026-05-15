@@ -6,6 +6,16 @@ import http from "node:http";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { getProviderSummary, runAgent } from "./ai.js";
+import {
+  checkAILimit,
+  getAnalytics,
+  incrementAIUsage,
+  loginUser,
+  optionalAuth,
+  registerUser,
+  requireAdmin,
+  requireAuth
+} from "./auth.js";
 import { config } from "./config.js";
 import { db } from "./db.js";
 import { imageStatus, runInDocker } from "./sandbox.js";
@@ -24,153 +34,297 @@ const app = express();
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: config.allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
-app.use(rateLimit({ windowMs: 60_000, limit: 120 }));
+app.use(optionalAuth);
 
-app.get("/health", (_request, response) => {
-  response.json({ ok: true, service: "novaforge-node-api", sqlite: true });
+const generalLimiter = rateLimit({ windowMs: 60_000, limit: 200 });
+const authLimiter = rateLimit({ windowMs: 60_000, limit: 20 });
+const agentLimiter = rateLimit({ windowMs: 60_000, limit: 30 });
+app.use("/api/auth", authLimiter);
+app.use("/api/agent", agentLimiter);
+app.use(generalLimiter);
+
+// ── Health ────────────────────────────────────────────────────────
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "novaforge-node-api", sqlite: true, uptime: process.uptime() });
+});
+
+app.get("/api/health", async (_req, res) => {
+  let pythonOk = false;
+  try {
+    const py = await fetch(`${config.pythonServiceUrl}/health`, { signal: AbortSignal.timeout(3000) });
+    pythonOk = py.ok;
+  } catch { /* python offline */ }
+  res.json({ ok: true, node: true, python: pythonOk, uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
 });
 
 ensureStarterWorkspace("demo-js");
 
-app.get("/api/projects", (_request, response) => {
+// ── Auth ──────────────────────────────────────────────────────────
+app.post("/api/auth/register", (req, res) => {
+  const schema = z.object({ username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/), password: z.string().min(6).max(100), displayName: z.string().max(100).optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid registration data. Username must be 3-30 alphanumeric chars, password min 6 chars." }); return; }
+  const user = registerUser(parsed.data.username, parsed.data.password, parsed.data.displayName);
+  if (!user) { res.status(409).json({ error: "Username already taken." }); return; }
+  const login = loginUser(parsed.data.username, parsed.data.password);
+  res.json({ ok: true, ...login });
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const schema = z.object({ username: z.string().min(1).max(30), password: z.string().min(1).max(100) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid credentials." }); return; }
+  const result = loginUser(parsed.data.username, parsed.data.password);
+  if (!result) { res.status(401).json({ error: "Invalid username or password." }); return; }
+  res.json({ ok: true, ...result });
+});
+
+app.get("/api/auth/me", requireAuth, (req, res) => {
+  const user = (req as any).user;
+  const full = db.prepare("SELECT id, username, display_name, role, plan, ai_requests_today, created_at FROM users WHERE id = ?").get(user.userId);
+  const limit = checkAILimit(user.userId);
+  res.json({ user: full, aiLimit: limit });
+});
+
+// ── Admin ─────────────────────────────────────────────────────────
+app.get("/api/admin/analytics", requireAuth, requireAdmin, (_req, res) => { res.json(getAnalytics()); });
+
+app.get("/api/admin/users", requireAuth, requireAdmin, (_req, res) => {
+  const users = db.prepare("SELECT id, username, display_name, role, plan, ai_requests_today, created_at FROM users ORDER BY created_at DESC").all();
+  res.json({ users });
+});
+
+app.delete("/api/admin/users/:id", requireAuth, requireAdmin, (req, res) => {
+  if (req.params.id === "admin-001") { res.status(400).json({ error: "Cannot delete admin account." }); return; }
+  db.prepare("DELETE FROM users WHERE id = ?").run(req.params.id);
+  res.json({ ok: true });
+});
+
+// ── Projects ──────────────────────────────────────────────────────
+app.get("/api/projects", (_req, res) => {
   const projects = db.prepare("SELECT * FROM projects ORDER BY created_at DESC").all();
-  response.json({ projects });
+  res.json({ projects });
 });
 
-app.get("/api/ai/providers", (_request, response) => {
-  response.json(getProviderSummary());
+app.post("/api/projects", (req, res) => {
+  const schema = z.object({ name: z.string().min(1).max(100), template: z.string().default("blank") });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid project data." }); return; }
+  const id = nanoid(10);
+  db.prepare("INSERT INTO projects (id, name, owner_id, visibility, template) VALUES (?, ?, ?, ?, ?)").run(id, parsed.data.name, (req as any).user?.userId || null, "private", parsed.data.template);
+  ensureStarterWorkspace(id);
+  res.json({ ok: true, projectId: id });
 });
 
-app.get("/api/workspace/tree", (request, response) => {
-  const workspaceId = String(request.query.workspaceId || "demo-js");
-  response.json({ entries: listWorkspace(workspaceId) });
+// ── AI Providers ──────────────────────────────────────────────────
+app.get("/api/ai/providers", (_req, res) => { res.json(getProviderSummary()); });
+
+// ── Workspace ─────────────────────────────────────────────────────
+app.get("/api/workspace/tree", (req, res) => {
+  try { res.json({ entries: listWorkspace(String(req.query.workspaceId || "demo-js")) }); }
+  catch { res.json({ entries: [] }); }
 });
 
-app.get("/api/workspace/file", (request, response) => {
-  const workspaceId = String(request.query.workspaceId || "demo-js");
-  const filePath = String(request.query.path || "");
-  response.json({ path: filePath, content: readWorkspaceFile(workspaceId, filePath) });
+app.get("/api/workspace/file", (req, res) => {
+  const workspaceId = String(req.query.workspaceId || "demo-js");
+  const filePath = String(req.query.path || "");
+  try { res.json({ path: filePath, content: readWorkspaceFile(workspaceId, filePath) }); }
+  catch { res.status(404).json({ error: "File not found." }); }
 });
 
-app.put("/api/workspace/file", (request, response) => {
-  const schema = z.object({
-    workspaceId: z.string().default("demo-js"),
-    path: z.string().min(1).max(300),
-    content: z.string().max(1_000_000).default("")
-  });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid file request." });
-    return;
-  }
+app.put("/api/workspace/file", (req, res) => {
+  const schema = z.object({ workspaceId: z.string().default("demo-js"), path: z.string().min(1).max(300), content: z.string().max(1_000_000).default("") });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid file request." }); return; }
   writeWorkspaceFile(parsed.data.workspaceId, parsed.data.path, parsed.data.content);
-  response.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
+  res.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
 });
 
-app.post("/api/workspace/folder", (request, response) => {
-  const schema = z.object({
-    workspaceId: z.string().default("demo-js"),
-    path: z.string().min(1).max(300)
-  });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid folder request." });
-    return;
-  }
+app.post("/api/workspace/folder", (req, res) => {
+  const schema = z.object({ workspaceId: z.string().default("demo-js"), path: z.string().min(1).max(300) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid folder request." }); return; }
   createWorkspaceFolder(parsed.data.workspaceId, parsed.data.path);
-  response.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
+  res.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
 });
 
-app.delete("/api/workspace/entry", (request, response) => {
-  const schema = z.object({
-    workspaceId: z.string().default("demo-js"),
-    path: z.string().min(1).max(300)
-  });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid delete request." });
-    return;
-  }
+app.delete("/api/workspace/entry", (req, res) => {
+  const schema = z.object({ workspaceId: z.string().default("demo-js"), path: z.string().min(1).max(300) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid delete request." }); return; }
   deleteWorkspaceEntry(parsed.data.workspaceId, parsed.data.path);
-  response.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
+  res.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
 });
 
-app.post("/api/waitlist", (request, response) => {
+app.post("/api/workspace/rename", (req, res) => {
+  const schema = z.object({ workspaceId: z.string().default("demo-js"), oldPath: z.string().min(1).max(300), newPath: z.string().min(1).max(300) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid rename request." }); return; }
+  try {
+    const content = readWorkspaceFile(parsed.data.workspaceId, parsed.data.oldPath);
+    writeWorkspaceFile(parsed.data.workspaceId, parsed.data.newPath, content);
+    deleteWorkspaceEntry(parsed.data.workspaceId, parsed.data.oldPath);
+    res.json({ ok: true, entries: listWorkspace(parsed.data.workspaceId) });
+  } catch { res.status(400).json({ error: "Rename failed." }); }
+});
+
+app.get("/api/workspace/export", (req, res) => {
+  const workspaceId = String(req.query.workspaceId || "demo-js");
+  const entries = listWorkspace(workspaceId);
+  const files: Record<string, string> = {};
+  for (const entry of entries.filter((e) => e.type === "file")) {
+    try { files[entry.path] = readWorkspaceFile(workspaceId, entry.path); } catch { /* skip */ }
+  }
+  res.json({ ok: true, files });
+});
+
+// ── Waitlist ──────────────────────────────────────────────────────
+app.post("/api/waitlist", (req, res) => {
   const schema = z.object({ email: z.string().email().max(240) });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid email." });
-    return;
-  }
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid email." }); return; }
   db.prepare("INSERT OR IGNORE INTO waitlist (email) VALUES (?)").run(parsed.data.email.toLowerCase());
-  response.json({ ok: true });
+  res.json({ ok: true });
 });
 
-app.post("/api/agent/run", async (request, response) => {
-  const schema = z.object({
-    provider: z.string().default("ollama"),
-    prompt: z.string().min(2).max(12000),
-    projectId: z.string().default("demo-js"),
-    files: z.record(z.string()).optional()
-  });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid agent request." });
-    return;
-  }
+// ── Agent ─────────────────────────────────────────────────────────
+app.post("/api/agent/run", async (req, res) => {
+  const schema = z.object({ provider: z.string().default("ollama"), prompt: z.string().min(2).max(12000), projectId: z.string().default("demo-js"), files: z.record(z.string()).optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid agent request." }); return; }
+
+  const userId = (req as any).user?.userId;
+  const limit = checkAILimit(userId);
+  if (!limit.allowed) { res.status(429).json({ error: "AI request limit reached. Upgrade to PRO for more.", remaining: 0 }); return; }
 
   const runId = nanoid();
-  db.prepare("INSERT INTO agent_runs (id, project_id, provider, prompt, status) VALUES (?, ?, ?, ?, ?)").run(
-    runId,
-    parsed.data.projectId,
-    parsed.data.provider,
-    sanitizeText(parsed.data.prompt),
-    "running"
-  );
+  db.prepare("INSERT INTO agent_runs (id, project_id, user_id, provider, prompt, status) VALUES (?, ?, ?, ?, ?, ?)").run(runId, parsed.data.projectId, userId || null, parsed.data.provider, sanitizeText(parsed.data.prompt), "running");
 
-  const result = await runAgent({
-    provider: parsed.data.provider,
-    prompt: sanitizeText(parsed.data.prompt),
-    apiKey: request.header("x-novaforge-api-key") || undefined,
-    files: parsed.data.files
-  });
-
-  db.prepare("UPDATE agent_runs SET status = ?, summary = ? WHERE id = ?").run("completed", result.message, runId);
-  response.json({ runId, ...result });
-});
-
-app.post("/api/sandbox/run", async (request, response) => {
-  const schema = z.object({
-    workspaceId: z.string().default("demo-js"),
-    language: z.string().default("node"),
-    command: z.string().min(1).max(500)
-  });
-  const parsed = schema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(400).json({ error: "Invalid sandbox request." });
-    return;
-  }
-  const result = await runInDocker(parsed.data.workspaceId, parsed.data.language, parsed.data.command);
-  response.status(result.ok ? 200 : 503).json(result);
-});
-
-app.get("/api/sandbox/status", async (_request, response) => {
-  response.json({ docker: true, images: await imageStatus() });
-});
-
-app.post("/api/smoke", async (_request, response) => {
   try {
-    const py = await fetch(`${config.pythonServiceUrl}/health`).then((result) => result.json());
-    response.json({ ok: true, message: "Node and Python services responded.", python: py });
-  } catch {
-    response.json({ ok: false, message: "Node API is up; Python FastAPI service is not reachable." });
+    const result = await runAgent({ provider: parsed.data.provider, prompt: sanitizeText(parsed.data.prompt), apiKey: req.header("x-novaforge-api-key") || undefined, files: parsed.data.files });
+    if (userId) incrementAIUsage(userId);
+    db.prepare("UPDATE agent_runs SET status = ?, summary = ? WHERE id = ?").run("completed", result.message, runId);
+    db.prepare("INSERT INTO chat_history (id, user_id, project_id, role, content) VALUES (?, ?, ?, ?, ?)").run(nanoid(), userId || "anon", parsed.data.projectId, "user", parsed.data.prompt);
+    db.prepare("INSERT INTO chat_history (id, user_id, project_id, role, content) VALUES (?, ?, ?, ?, ?)").run(nanoid(), userId || "anon", parsed.data.projectId, "assistant", result.message);
+    res.json({ runId, remaining: limit.remaining - 1, ...result });
+  } catch (error) {
+    db.prepare("UPDATE agent_runs SET status = ? WHERE id = ?").run("failed", runId);
+    res.status(500).json({ error: "Agent execution failed.", message: error instanceof Error ? error.message : "Unknown error" });
   }
 });
 
-app.post("/api/share", (_request, response) => {
+// ── Sandbox ───────────────────────────────────────────────────────
+app.post("/api/sandbox/run", async (req, res) => {
+  const schema = z.object({ workspaceId: z.string().default("demo-js"), language: z.string().default("node"), command: z.string().min(1).max(500) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid sandbox request." }); return; }
+  try { const result = await runInDocker(parsed.data.workspaceId, parsed.data.language, parsed.data.command); res.status(result.ok ? 200 : 503).json(result); }
+  catch { res.status(503).json({ ok: false, output: "Sandbox execution failed. Is Docker running?" }); }
+});
+
+app.get("/api/sandbox/status", async (_req, res) => {
+  try { res.json({ docker: true, images: await imageStatus() }); }
+  catch { res.json({ docker: false, images: [] }); }
+});
+
+// ── Smoke / Share ─────────────────────────────────────────────────
+app.post("/api/smoke", async (_req, res) => {
+  try { const py = await fetch(`${config.pythonServiceUrl}/health`, { signal: AbortSignal.timeout(3000) }).then((r) => r.json()); res.json({ ok: true, message: "Node and Python services responded.", python: py }); }
+  catch { res.json({ ok: false, message: "Node API is up; Python service not reachable." }); }
+});
+
+app.post("/api/share", (_req, res) => {
   const slug = `build-${nanoid(8)}`;
   db.prepare("INSERT INTO share_links (id, project_id, slug) VALUES (?, ?, ?)").run(nanoid(), "demo-js", slug);
-  response.json({ url: `http://localhost:3000/share/${slug}` });
+  res.json({ ok: true, url: `/share/${slug}`, slug });
+});
+
+// ── Donations ─────────────────────────────────────────────────────
+app.post("/api/donations", (req, res) => {
+  const schema = z.object({ amount: z.number().min(1).max(100000), message: z.string().max(500).default("") });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid donation." }); return; }
+  db.prepare("INSERT INTO donations (id, user_id, amount, currency, message) VALUES (?, ?, ?, ?, ?)").run(nanoid(), (req as any).user?.userId || null, parsed.data.amount, "INR", sanitizeText(parsed.data.message));
+  res.json({ ok: true, message: "Thank you for your support!" });
+});
+
+app.get("/api/donations/recent", (_req, res) => {
+  const donations = db.prepare("SELECT amount, message, created_at FROM donations ORDER BY created_at DESC LIMIT 10").all();
+  res.json({ donations });
+});
+
+// ── Subscriptions ─────────────────────────────────────────────────
+app.post("/api/subscriptions/upgrade", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const expiresAt = new Date(); expiresAt.setMonth(expiresAt.getMonth() + 1);
+  const existing = db.prepare("SELECT id FROM subscriptions WHERE user_id = ?").get(userId);
+  if (existing) { db.prepare("UPDATE subscriptions SET plan = 'pro', status = 'active', expires_at = ? WHERE user_id = ?").run(expiresAt.toISOString(), userId); }
+  else { db.prepare("INSERT INTO subscriptions (id, user_id, plan, expires_at) VALUES (?, ?, ?, ?)").run(nanoid(), userId, "pro", expiresAt.toISOString()); }
+  db.prepare("UPDATE users SET plan = 'pro' WHERE id = ?").run(userId);
+  res.json({ ok: true, plan: "pro", expiresAt: expiresAt.toISOString() });
+});
+
+app.get("/api/subscriptions/status", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const sub = db.prepare("SELECT * FROM subscriptions WHERE user_id = ?").get(userId);
+  const user = db.prepare("SELECT plan FROM users WHERE id = ?").get(userId) as any;
+  res.json({ plan: user?.plan || "free", subscription: sub || null });
+});
+
+// ── Settings ──────────────────────────────────────────────────────
+app.get("/api/settings", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  let settings = db.prepare("SELECT * FROM settings WHERE user_id = ?").get(userId);
+  if (!settings) { db.prepare("INSERT INTO settings (user_id) VALUES (?)").run(userId); settings = db.prepare("SELECT * FROM settings WHERE user_id = ?").get(userId); }
+  res.json({ settings });
+});
+
+app.put("/api/settings", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const schema = z.object({ theme: z.string().optional(), editor_font_size: z.number().min(10).max(24).optional(), ai_provider: z.string().optional(), ai_model: z.string().optional(), terminal_font_size: z.number().min(10).max(20).optional(), auto_save: z.number().min(0).max(1).optional() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid settings." }); return; }
+  const existing = db.prepare("SELECT user_id FROM settings WHERE user_id = ?").get(userId);
+  if (!existing) { db.prepare("INSERT INTO settings (user_id) VALUES (?)").run(userId); }
+  for (const [key, value] of Object.entries(parsed.data)) {
+    if (value !== undefined) { db.prepare(`UPDATE settings SET ${key} = ? WHERE user_id = ?`).run(value, userId); }
+  }
+  res.json({ ok: true, settings: db.prepare("SELECT * FROM settings WHERE user_id = ?").get(userId) });
+});
+
+// ── Chat / Dashboard / Templates ──────────────────────────────────
+app.get("/api/chat/history", (req, res) => {
+  const projectId = String(req.query.projectId || "demo-js");
+  const history = db.prepare("SELECT role, content, created_at FROM chat_history WHERE project_id = ? ORDER BY created_at DESC LIMIT 50").all(projectId);
+  res.json({ history: (history as any[]).reverse() });
+});
+
+app.get("/api/dashboard", (req, res) => {
+  const userId = (req as any).user?.userId;
+  const projects = db.prepare("SELECT * FROM projects ORDER BY created_at DESC LIMIT 20").all();
+  const recentChats = db.prepare("SELECT role, content, created_at FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 10").all(userId || "anon");
+  const aiLimit = checkAILimit(userId);
+  const agentRuns = db.prepare("SELECT COUNT(*) as count FROM agent_runs WHERE user_id = ?").get(userId || "anon") as any;
+  res.json({ projects, recentChats: (recentChats as any[]).reverse(), aiUsage: { remaining: aiLimit.remaining }, agentRuns: agentRuns?.count || 0 });
+});
+
+app.get("/api/templates", (_req, res) => {
+  res.json({ templates: [
+    { id: "react", name: "React App", description: "React with Vite", icon: "⚛️", language: "TypeScript" },
+    { id: "nextjs", name: "Next.js App", description: "Next.js 15 with App Router", icon: "▲", language: "TypeScript" },
+    { id: "python-ai", name: "Python AI App", description: "Python with ML starter", icon: "🐍", language: "Python" },
+    { id: "express", name: "Express Backend", description: "Express.js REST API", icon: "🚀", language: "JavaScript" },
+    { id: "rust-cli", name: "Rust CLI", description: "Rust command-line tool", icon: "🦀", language: "Rust" },
+    { id: "java", name: "Java Starter", description: "Java console application", icon: "☕", language: "Java" },
+    { id: "cpp", name: "C++ Starter", description: "C++ with CMake", icon: "⚡", language: "C++" },
+    { id: "html", name: "HTML/CSS Website", description: "Static website starter", icon: "🌐", language: "HTML" }
+  ]});
+});
+
+// ── Error handler ─────────────────────────────────────────────────
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ error: "Internal server error." });
 });
 
 const server = http.createServer(app);

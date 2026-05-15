@@ -20,3 +20,28 @@ export const demoFiles = {
 }
 `
 };
+
+// Auth helpers
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem("novaforge_token");
+}
+
+export function setAuthToken(token: string) {
+  window.localStorage.setItem("novaforge_token", token);
+}
+
+export function clearAuthToken() {
+  window.localStorage.removeItem("novaforge_token");
+}
+
+export function authHeaders(): Record<string, string> {
+  const token = getAuthToken();
+  return token ? { authorization: `Bearer ${token}` } : {};
+}
+
+export async function apiFetch(path: string, options: RequestInit = {}) {
+  const headers = { "content-type": "application/json", ...authHeaders(), ...(options.headers || {}) };
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  return res;
+}
