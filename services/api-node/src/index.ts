@@ -32,7 +32,7 @@ import {
 } from "./workspace.js";
 
 const app = express();
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, frameguard: false }));
 app.use(cors({ origin: config.allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(optionalAuth);
@@ -43,6 +43,11 @@ const agentLimiter = rateLimit({ windowMs: 60_000, limit: 30 });
 app.use("/api/auth", authLimiter);
 app.use("/api/agent", agentLimiter);
 app.use(generalLimiter);
+
+// ── Root ──────────────────────────────────────────────────────────
+app.get("/", (_req, res) => {
+  res.json({ name: "NovaForge API", version: "0.1.0", docs: "/health", preview: "/preview/:projectId/index.html" });
+});
 
 // ── Health ────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
@@ -356,6 +361,10 @@ app.get("/preview/:projectId/*", (req, res) => {
     const ext = path.extname(filePath).toLowerCase();
     res.setHeader("Content-Type", mimeTypes[ext] || "text/plain");
     res.setHeader("Cache-Control", "no-cache");
+    res.removeHeader("X-Frame-Options");
+    res.removeHeader("Cross-Origin-Resource-Policy");
+    res.removeHeader("Cross-Origin-Opener-Policy");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(content);
   } catch {
     res.status(404).send("File not found");
