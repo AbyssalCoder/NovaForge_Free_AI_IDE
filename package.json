@@ -1,0 +1,24 @@
+{
+  "name": "novaforge-free-ai-ide",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NovaForge: zero-budget browser AI Cloud IDE and autonomous coding agent platform.",
+  "workspaces": [
+    "apps/web",
+    "services/api-node"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,node,python -c cyan,magenta,green \"npm run dev -w apps/web\" \"npm run dev -w services/api-node\" \"python -m uvicorn main:app --app-dir services/api-python --host 127.0.0.1 --port 8788 --reload --reload-dir services/api-python\"",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:node": "npm run dev -w services/api-node",
+    "dev:python": "python -m uvicorn main:app --app-dir services/api-python --host 127.0.0.1 --port 8788 --reload --reload-dir services/api-python",
+    "build": "npm run build -w apps/web && npm run build -w services/api-node",
+    "lint": "npm run lint -w apps/web && npm run lint -w services/api-node",
+    "smoke": "node scripts/smoke-test.mjs",
+    "browser-check": "node scripts/browser-check.mjs",
+    "start": "concurrently -n web,node -c cyan,magenta \"npm run start -w apps/web\" \"npm run start -w services/api-node\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

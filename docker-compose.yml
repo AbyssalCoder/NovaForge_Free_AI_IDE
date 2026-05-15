@@ -1,0 +1,19 @@
+services:
+  api-node:
+    build:
+      context: ./services/api-node
+    env_file:
+      - .env
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./workspaces:/app/workspaces
+      - ./data:/app/data
+    restart: unless-stopped
+
+  api-python:
+    build:
+      context: ./services/api-python
+    ports:
+      - "8788:8788"
+    restart: unless-stopped

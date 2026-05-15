@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "@xterm/xterm/css/xterm.css";
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(34, 211, 238, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 12%, rgba(247, 201, 72, 0.13), transparent 24%),
+    #05070d;
+  color: #e5f6ff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(16, 23, 42, 0.92), rgba(8, 13, 26, 0.86));
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.11);
+  backdrop-filter: blur(16px);
+}
+
+.scanline {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 100% 4px;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.35);
+  border-radius: 999px;
+}
