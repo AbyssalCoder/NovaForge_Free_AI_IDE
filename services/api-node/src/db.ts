@@ -108,5 +108,3 @@ if (!seedProject) {
     "demo-js", "NovaForge Demo App", "admin-001", "public", "nextjs"
   );
 }
-  );
-}

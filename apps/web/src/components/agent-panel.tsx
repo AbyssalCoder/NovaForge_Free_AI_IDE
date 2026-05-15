@@ -17,9 +17,10 @@ type Props = {
   files: Record<string, string>;
   onStatus: (message: string) => void;
   onHighlightFile?: (file: string | null) => void;
+  onFilesCreated?: () => void;
 };
 
-export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile }: Props) {
+export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile, onFilesCreated }: Props) {
   const [prompt, setPrompt] = useState("Build a polished todo app with local persistence and tests.");
   const [busy, setBusy] = useState(false);
   const [steps, setSteps] = useState<AgentStep[]>([]);
@@ -74,7 +75,17 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile 
         { text: data.message || "Agent completed.", status: "completed" }
       ]);
 
-      setLog((current) => [data.message || "Agent completed.", ...(data.steps || []), ...current]);
+      // If files were created, refresh the workspace
+      if (data.createdFiles && data.createdFiles.length > 0) {
+        onFilesCreated?.();
+        setLog((current) => [
+          `✅ Created ${data.createdFiles.length} file(s): ${data.createdFiles.join(", ")}`,
+          data.message || "Agent completed.",
+          ...current
+        ]);
+      } else {
+        setLog((current) => [data.message || "Agent completed.", ...(data.steps || []), ...current]);
+      }
       onStatus(response.ok ? "Agent completed" : "Agent needs provider configuration");
     } catch {
       setSteps([{ text: "Agent API offline. Start backend first.", status: "completed" }]);

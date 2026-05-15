@@ -202,11 +202,28 @@ app.post("/api/agent/run", async (req, res) => {
 
   try {
     const result = await runAgent({ provider: parsed.data.provider, prompt: sanitizeText(parsed.data.prompt), apiKey: req.header("x-novaforge-api-key") || undefined, files: parsed.data.files });
+
+    // Actually write generated files to the workspace
+    const createdFiles: string[] = [];
+    if (result.files && Object.keys(result.files).length > 0) {
+      for (const [filePath, content] of Object.entries(result.files)) {
+        try {
+          writeWorkspaceFile(parsed.data.projectId, filePath, content);
+          createdFiles.push(filePath);
+        } catch (e) {
+          console.error(`Failed to write ${filePath}:`, e);
+        }
+      }
+    }
+
     if (userId) incrementAIUsage(userId);
     db.prepare("UPDATE agent_runs SET status = ?, summary = ? WHERE id = ?").run("completed", result.message, runId);
     db.prepare("INSERT INTO chat_history (id, user_id, project_id, role, content) VALUES (?, ?, ?, ?, ?)").run(nanoid(), userId || "anon", parsed.data.projectId, "user", parsed.data.prompt);
     db.prepare("INSERT INTO chat_history (id, user_id, project_id, role, content) VALUES (?, ?, ?, ?, ?)").run(nanoid(), userId || "anon", parsed.data.projectId, "assistant", result.message);
-    res.json({ runId, remaining: limit.remaining - 1, ...result });
+
+    // Return updated workspace tree so frontend can refresh
+    const updatedEntries = listWorkspace(parsed.data.projectId);
+    res.json({ runId, remaining: limit.remaining - 1, ...result, createdFiles, entries: updatedEntries });
   } catch (error) {
     db.prepare("UPDATE agent_runs SET status = ? WHERE id = ?").run("failed", runId);
     res.status(500).json({ error: "Agent execution failed.", message: error instanceof Error ? error.message : "Unknown error" });
