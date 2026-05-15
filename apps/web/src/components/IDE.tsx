@@ -445,7 +445,7 @@ export default function IDE() {
 
           {/* Right Panel: Agent + Preview */}
           <section className="flex flex-col gap-2 overflow-hidden">
-            {showAgent && <AgentPanel provider={provider} apiKey={apiKey} files={files} onStatus={setStatus} onHighlightFile={setHighlightedFile} onFilesCreated={refreshWorkspace} />}
+            {showAgent && <AgentPanel provider={provider} apiKey={apiKey} files={files} onStatus={setStatus} onHighlightFile={setHighlightedFile} onFilesCreated={refreshWorkspace} onOpenFile={(path) => { if (files[path] !== undefined) setActiveFile(path); else refreshWorkspace().then(() => setActiveFile(path)); }} />}
 
             {showPreview && (
               <div className="glass flex flex-col overflow-hidden rounded-lg">
