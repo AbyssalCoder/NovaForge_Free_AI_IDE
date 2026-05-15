@@ -3,6 +3,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import http from "node:http";
+import path from "node:path";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { getProviderSummary, runAgent } from "./ai.js";
@@ -336,6 +337,29 @@ app.get("/api/templates", (_req, res) => {
     { id: "cpp", name: "C++ Starter", description: "C++ with CMake", icon: "⚡", language: "C++" },
     { id: "html", name: "HTML/CSS Website", description: "Static website starter", icon: "🌐", language: "HTML" }
   ]});
+});
+
+// ── Preview (serve workspace files with correct MIME) ─────────────
+const mimeTypes: Record<string, string> = {
+  ".html": "text/html", ".css": "text/css", ".js": "application/javascript",
+  ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml",
+  ".ico": "image/x-icon", ".woff": "font/woff", ".woff2": "font/woff2",
+  ".ttf": "font/ttf", ".txt": "text/plain", ".xml": "application/xml",
+};
+
+app.get("/preview/:projectId/*", (req, res) => {
+  const projectId = req.params.projectId.replace(/[^a-zA-Z0-9_-]/g, "");
+  const filePath = req.params[0] || "index.html";
+  try {
+    const content = readWorkspaceFile(projectId, filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    res.setHeader("Content-Type", mimeTypes[ext] || "text/plain");
+    res.setHeader("Cache-Control", "no-cache");
+    res.send(content);
+  } catch {
+    res.status(404).send("File not found");
+  }
 });
 
 // ── Error handler ─────────────────────────────────────────────────

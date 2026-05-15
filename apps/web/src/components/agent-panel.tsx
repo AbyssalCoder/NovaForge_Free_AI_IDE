@@ -45,6 +45,7 @@ type Props = {
   onHighlightFile?: (file: string | null) => void;
   onFilesCreated?: () => void;
   onOpenFile?: (path: string) => void;
+  onPreviewUrl?: (url: string) => void;
 };
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -87,7 +88,7 @@ function nextId() { return `msg-${++msgId}`; }
 
 /* ── Component ────────────────────────────────────────────────── */
 
-export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile, onFilesCreated, onOpenFile }: Props) {
+export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile, onFilesCreated, onOpenFile, onPreviewUrl }: Props) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -181,7 +182,6 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
         content += `**Files:**\n${createdFiles.map((f: string) => `- \`${f}\``).join("\n")}\n\n`;
         if (hasHTML) {
           content += `**🌐 Open in browser:**\n`;
-          content += `\`\`\`\nServe on http://localhost:${port}\n\`\`\`\n`;
           content += `Click a file below to open it in the editor, or use **Run** to execute.\n`;
         } else {
           content += `Click a file below to open it in the editor.\n`;
@@ -197,7 +197,7 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
         timestamp: new Date(),
         steps: fileSteps,
         createdFiles,
-        port: hasHTML ? port : undefined,
+        port: hasHTML ? 8787 : undefined,
       };
 
       setMessages((prev) => prev.filter((m) => m.id !== thinkingId).concat(assistantMsg));
@@ -206,6 +206,9 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
       if (createdFiles.length > 0) {
         onFilesCreated?.();
         if (createdFiles[0]) onOpenFile?.(createdFiles[0]);
+        if (hasHTML) {
+          onPreviewUrl?.(`http://localhost:8787/preview/demo-js/index.html`);
+        }
         for (const f of createdFiles) {
           onHighlightFile?.(f);
           await new Promise((r) => setTimeout(r, 200));
