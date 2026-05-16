@@ -96,6 +96,18 @@ db.exec(`
     token_hash TEXT PRIMARY KEY,
     expires_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS upgrade_requests (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    username TEXT NOT NULL,
+    transaction_id TEXT NOT NULL,
+    amount INTEGER NOT NULL DEFAULT 150,
+    status TEXT NOT NULL DEFAULT 'pending',
+    admin_note TEXT DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TEXT
+  );
 `);
 
 // Indexes for frequently queried columns
@@ -108,6 +120,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_share_links_slug ON share_links(slug);
   CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects(owner_id);
   CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_upgrade_requests_user ON upgrade_requests(user_id);
+  CREATE INDEX IF NOT EXISTS idx_upgrade_requests_status ON upgrade_requests(status);
 `);
 
 // Seed admin user (password: admin2005, bcrypt hash)

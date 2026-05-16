@@ -36,6 +36,7 @@ import { AuthModal } from "@/components/auth-modal";
 import { DonationModal } from "@/components/donation-modal";
 import { SubscriptionModal } from "@/components/subscription-modal";
 import { SettingsModal } from "@/components/settings-modal";
+import { AdminPanel } from "@/components/admin-panel";
 import { API_URL, apiFetch, clearAuthToken, demoFiles, geminiStudioUrl, getAuthToken } from "@/lib/config";
 
 type FileMap = Record<string, string>;
@@ -75,6 +76,7 @@ export default function IDE() {
   const [showDonation, setShowDonation] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // Per-user workspace ID
@@ -371,6 +373,11 @@ export default function IDE() {
                 ) : (
                   <button onClick={() => setShowSubscription(true)} className="rounded bg-amberForge/15 px-2 py-1 text-amberForge hover:bg-amberForge/25">Upgrade</button>
                 )}
+                {user.role === "admin" && (
+                  <button onClick={() => setShowAdmin(true)} className="rounded border border-amberForge/30 bg-amberForge/10 px-2 py-1 text-xs text-amberForge hover:bg-amberForge/20" title="Admin Panel">
+                    Requests
+                  </button>
+                )}
                 <button onClick={handleLogout} className="rounded border border-slate-700 p-1.5 text-slate-400 hover:text-white" title="Logout">
                   <LogOut className="h-3.5 w-3.5" />
                 </button>
@@ -554,6 +561,7 @@ export default function IDE() {
       <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} onSettingsChange={(s) => {
         if (s.editor_font_size) setEditorFontSize(s.editor_font_size);
       }} />
+      {user?.role === "admin" && <AdminPanel open={showAdmin} onClose={() => setShowAdmin(false)} />}
     </main>
   );
 }

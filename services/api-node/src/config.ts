@@ -25,4 +25,6 @@ export const config = {
   openRouterModel: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat:free",
   maxWorkspaceSizeMB: Number(process.env.MAX_WORKSPACE_SIZE_MB || 50),
   maxWorkspaceFiles: Number(process.env.MAX_WORKSPACE_FILES || 200),
+  ntfyTopic: process.env.NTFY_TOPIC || "novaforge-admin-alerts",
+  adminPhoneNote: process.env.ADMIN_PHONE || "+91 7980458591",
 };

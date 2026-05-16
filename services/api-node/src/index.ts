@@ -296,15 +296,86 @@ app.get("/api/donations/recent", (_req, res) => {
 });
 
 // ── Subscriptions ─────────────────────────────────────────────────
-app.post("/api/subscriptions/upgrade", requireAuth, (_req, res) => {
-  res.status(501).json({ error: "Payment integration pending. Contact support for PRO access." });
+// User submits upgrade request after UPI payment
+app.post("/api/subscriptions/upgrade", requireAuth, async (req, res) => {
+  const userId = (req as any).user.userId;
+  const { transactionId } = req.body;
+  if (!transactionId || typeof transactionId !== "string" || transactionId.trim().length < 5) {
+    return res.status(400).json({ error: "Valid UPI transaction ID is required (min 5 chars)" });
+  }
+
+  const sanitizedTxn = sanitizeText(transactionId.trim()).slice(0, 100);
+  const user = db.prepare("SELECT username FROM users WHERE id = ?").get(userId) as any;
+  const existing = db.prepare("SELECT id FROM upgrade_requests WHERE user_id = ? AND status = 'pending'").get(userId);
+  if (existing) {
+    return res.status(409).json({ error: "You already have a pending upgrade request. Please wait 24-48 hours for approval." });
+  }
+
+  const id = nanoid();
+  db.prepare(
+    "INSERT INTO upgrade_requests (id, user_id, username, transaction_id) VALUES (?, ?, ?, ?)"
+  ).run(id, userId, user?.username || "unknown", sanitizedTxn);
+
+  // Send push notification to admin via ntfy.sh (free)
+  try {
+    await fetch(`https://ntfy.sh/${config.ntfyTopic}`, {
+      method: "POST",
+      headers: {
+        "Title": "NovaForge: New PRO Upgrade Request",
+        "Priority": "high",
+        "Tags": "money_with_wings",
+      },
+      body: `User: ${user?.username}\nTxn ID: ${sanitizedTxn}\nAmount: ₹150\n\nApprove in admin panel or reply APPROVE ${id}`,
+    });
+  } catch (e) {
+    console.error("ntfy notification failed:", e);
+  }
+
+  res.json({ ok: true, message: "Upgrade request submitted! You'll be upgraded within 24-48 hours after payment verification.", requestId: id });
+});
+
+// Admin: list all upgrade requests
+app.get("/api/admin/upgrade-requests", requireAuth, requireAdmin, (_req, res) => {
+  const requests = db.prepare("SELECT * FROM upgrade_requests ORDER BY created_at DESC").all();
+  res.json({ requests });
+});
+
+// Admin: approve an upgrade request
+app.post("/api/admin/upgrade-requests/:id/approve", requireAuth, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const request = db.prepare("SELECT * FROM upgrade_requests WHERE id = ?").get(id) as any;
+  if (!request) return res.status(404).json({ error: "Request not found" });
+  if (request.status !== "pending") return res.status(400).json({ error: `Request already ${request.status}` });
+
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  db.prepare("UPDATE users SET plan = 'pro' WHERE id = ?").run(request.user_id);
+  db.prepare(
+    "INSERT OR REPLACE INTO subscriptions (id, user_id, plan, started_at, expires_at, status) VALUES (?, ?, 'pro', datetime('now'), ?, 'active')"
+  ).run(nanoid(), request.user_id, expiresAt);
+  db.prepare("UPDATE upgrade_requests SET status = 'approved', resolved_at = datetime('now') WHERE id = ?").run(id);
+
+  res.json({ ok: true, message: `User ${request.username} upgraded to PRO until ${expiresAt}` });
+});
+
+// Admin: reject an upgrade request
+app.post("/api/admin/upgrade-requests/:id/reject", requireAuth, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const note = typeof req.body?.note === "string" ? sanitizeText(req.body.note).slice(0, 500) : "";
+  const request = db.prepare("SELECT * FROM upgrade_requests WHERE id = ?").get(id) as any;
+  if (!request) return res.status(404).json({ error: "Request not found" });
+  if (request.status !== "pending") return res.status(400).json({ error: `Request already ${request.status}` });
+
+  db.prepare("UPDATE upgrade_requests SET status = 'rejected', admin_note = ?, resolved_at = datetime('now') WHERE id = ?").run(note, id);
+  res.json({ ok: true, message: "Request rejected" });
 });
 
 app.get("/api/subscriptions/status", requireAuth, (req, res) => {
   const userId = (req as any).user.userId;
-  const sub = db.prepare("SELECT * FROM subscriptions WHERE user_id = ?").get(userId);
+  const sub = db.prepare("SELECT * FROM subscriptions WHERE user_id = ?").get(userId) as any;
   const user = db.prepare("SELECT plan FROM users WHERE id = ?").get(userId) as any;
-  res.json({ plan: user?.plan || "free", subscription: sub || null });
+  const pendingRequest = db.prepare("SELECT id, created_at FROM upgrade_requests WHERE user_id = ? AND status = 'pending'").get(userId);
+  res.json({ plan: user?.plan || "free", subscription: sub || null, pendingRequest: pendingRequest || null });
 });
 
 // ── Settings ──────────────────────────────────────────────────────
