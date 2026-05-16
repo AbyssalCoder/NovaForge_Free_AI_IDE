@@ -24,8 +24,8 @@ Hey everyone! I've been working on **CodeAbyss** — a free, open-source cloud I
 
 **Tech stack:** Next.js 15, Express, SQLite, Monaco Editor, xterm.js, Docker, Framer Motion
 
-**Live:** [DEPLOY_URL]
-**GitHub:** https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
+**Live:** https://codeabyss.vercel.app
+**GitHub:** https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
 
 Would love feedback! What features would you want added?
 
@@ -41,7 +41,7 @@ I just shipped CodeAbyss — a free AI-powered IDE that runs in your browser �
 ✅ Docker sandboxed execution
 ✅ No installs needed
 
-Try it free: [DEPLOY_URL]
+Try it free: https://codeabyss.vercel.app
 
 🧵 Thread on how I built it 👇
 
@@ -54,7 +54,7 @@ The tech stack:
 - Docker for safe code execution
 - OpenRouter for free AI models
 
-All open-source: github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
+All open-source: github.com/AbyssalCoder/CodeAbyss_AI_IDE
 
 **Tweet 3:**
 Features I'm most proud of:
@@ -67,7 +67,7 @@ Features I'm most proud of:
 **Tweet 4:**
 Built this as a side project to make coding accessible for everyone — especially students who can't afford expensive IDEs or powerful laptops.
 
-If you find it useful, a ⭐ on GitHub means the world: github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
+If you find it useful, a ⭐ on GitHub means the world: github.com/AbyssalCoder/CodeAbyss_AI_IDE
 
 #buildinpublic #webdev #opensource #AI #coding
 
@@ -89,8 +89,8 @@ After months of work, I'm launching **CodeAbyss** — a browser-based IDE with:
 
 **Tech:** Next.js 15, Express, Monaco Editor, SQLite, Docker, xterm.js
 
-Try it: [DEPLOY_URL]
-Star it: https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
+Try it: https://codeabyss.vercel.app
+Star it: https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
 
 #OpenSource #WebDevelopment #AI #Coding #SideProject #Innovation
 
@@ -129,8 +129,8 @@ Security: JWT auth with token blacklisting, command injection prevention, worksp
 
 Free tier: 50 AI requests/day, all languages, Docker execution
 
-Live: [DEPLOY_URL]
-Source: https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
+Live: https://codeabyss.vercel.app
+Source: https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
 
 ---
 
@@ -156,4 +156,203 @@ Source: https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 ---
 
-## 📌 Remember to replace [DEPLOY_URL] with your actual live URL once deployed!
+## 📌 All URLs:
+- **Live site:** https://codeabyss.vercel.app
+- **GitHub:** https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
+
+---
+
+## 🔥🔥🔥 VIRAL COPY-PASTE POSTS (Ready to go NOW)
+
+### Reddit r/webdev (Post this FIRST - highest ROI)
+
+**Title:** I built a 100% free AI IDE that's basically Cursor but in your browser — open source
+
+**Body:**
+
+No paywall. No signup. No download. Just open the link and start coding.
+
+I was frustrated paying $20/mo for AI coding tools when I'm a student, so I built my own and open-sourced it.
+
+**CodeAbyss** — a browser-based IDE with:
+- AI coding agent (writes entire apps from prompts)
+- 8 languages: Python, JS, TS, Java, C, C++, Rust, HTML
+- Built-in terminal
+- Live preview
+- Monaco editor (same as VS Code)
+- Dark mode, responsive
+
+Try it: https://codeabyss.vercel.app
+Source: https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
+
+It's on Vercel + Render free tiers so it costs me $0 to run. Happy to answer any questions about the architecture.
+
+---
+
+### Reddit r/programming
+
+**Title:** Show r/programming: Free open-source AI IDE — browser-based alternative to Cursor/Replit
+
+---
+
+### Reddit r/SideProject
+
+**Title:** Launched my side project — a free AI-powered IDE that runs in the browser (open source)
+
+---
+
+### Reddit r/selfhosted
+
+**Title:** Self-hostable AI IDE with Docker sandbox — free alternative to Replit/Gitpod
+
+---
+
+### Twitter/X Viral Thread:
+
+Tweet 1:
+```
+I made Cursor free.
+
+Not a clone. Not a discount. Actually free, open source, runs in your browser.
+
+8 languages. AI agent. Terminal. Live preview.
+
+→ codeabyss.vercel.app
+
+No signup. No credit card. Ship it. 🚢
+```
+
+Tweet 2:
+```
+"But how is it free?"
+
+- Hosted on Vercel (free tier)
+- Backend on Render (free tier) 
+- AI via OpenRouter free models
+- Open source so anyone can self-host
+
+Total cost to run: $0/month
+
+github.com/AbyssalCoder/CodeAbyss_AI_IDE ⭐
+```
+
+Tweet 3:
+```
+Features:
+→ AI writes entire apps from a prompt
+→ Python, JS, TypeScript, Java, C, C++, Rust
+→ Real terminal (not fake)
+→ Monaco editor (VS Code engine)
+→ Docker sandboxed execution
+→ Per-user workspaces
+→ Mobile responsive
+
+All free. All open source.
+```
+
+Tweet 4:
+```
+Built this as a broke student who couldn't afford:
+- Cursor ($20/mo)
+- GitHub Copilot ($10/mo)
+- Replit ($25/mo)
+
+If you're in the same boat, this is for you.
+
+Star it if you want to help others find it:
+github.com/AbyssalCoder/CodeAbyss_AI_IDE
+
+#buildinpublic #opensource #coding #AI
+```
+
+---
+
+### Instagram Caption (for Reels):
+```
+I made Cursor for free 😳🔥
+
+→ AI writes code for you
+→ 8 programming languages  
+→ Runs in your browser
+→ No signup, no download
+→ 100% open source
+
+Link in bio: codeabyss.vercel.app
+
+#coding #programming #developer #ai #tech #free #opensource #webdev #python #javascript #react #cursor #github #copilot #studentlife #cs #computerscience #softwareengineer
+```
+
+---
+
+### TikTok Caption:
+```
+POV: you found the free version of Cursor 💀
+
+codeabyss.vercel.app
+
+#coding #programming #tech #ai #free #developer #softwareengineering #cs #cursor #copilot #hack #studenthack
+```
+
+---
+
+### Product Hunt (Submit at producthunt.com/posts/new)
+
+**Name:** CodeAbyss
+**Tagline:** Free AI IDE in your browser — the open-source Cursor alternative  
+**URL:** https://codeabyss.vercel.app
+**GitHub:** https://github.com/AbyssalCoder/CodeAbyss_AI_IDE
+
+**First Comment:**
+Hey PH! 👋 I built CodeAbyss because AI coding tools shouldn't cost $20/month.
+
+It's a browser-based IDE with a built-in AI agent that can write, explain, and debug code across 8 languages. Completely free, no signup required, open source.
+
+Would love your feedback on what to build next!
+
+---
+
+### Hacker News (news.ycombinator.com/submit)
+
+**Title:** Show HN: CodeAbyss – Free open-source AI IDE in the browser
+
+**URL:** https://codeabyss.vercel.app
+
+---
+
+### Dev.to Blog Post Title:
+"How I Built a Free AI IDE That Runs Entirely in the Browser (Next.js + Express + Docker)"
+
+---
+
+## 🗓️ POSTING SCHEDULE FOR MAXIMUM VIRALITY:
+
+**Day 1 (Today):**
+- Post Reddit r/webdev (morning)
+- Post Twitter thread (afternoon)
+- Post TikTok video #1 or #2 (evening, 7PM)
+
+**Day 2:**
+- Post Reddit r/programming
+- Post Instagram Reel
+- Post TikTok video (different one)
+- Submit to Product Hunt (schedule for Tuesday AM)
+
+**Day 3:**
+- Post Reddit r/SideProject + r/opensource
+- Hacker News "Show HN"
+- LinkedIn post
+- TikTok video #3
+
+**Day 4-7:**
+- Post 1-2 TikTok/Reels per day
+- Respond to ALL comments within 1 hour
+- Repost best performing content
+- Cross-post to YouTube Shorts
+
+**IMPORTANT RULES:**
+1. NEVER post the same content to multiple subreddits simultaneously (Reddit will shadow-ban)
+2. Space Reddit posts 24hrs apart
+3. Engage with every single comment in the first hour
+4. On TikTok: reply to comments with new videos
+5. Use different titles for each subreddit
+6. Best posting times: 8-9AM EST (Reddit/HN), 7PM local (TikTok/Reels)

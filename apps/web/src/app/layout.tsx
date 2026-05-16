@@ -9,22 +9,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CodeAbyss – Free AI Cloud IDE & Online Compiler",
     description: "Free AI-powered cloud IDE. Write, run & deploy code in 8+ languages with an autonomous coding agent. Python, JavaScript, TypeScript, Java, C++, Rust, HTML/CSS.",
-    url: "https://CodeAbyss.dev",
+    url: "https://codeabyss.vercel.app",
     siteName: "CodeAbyss",
     type: "website",
     locale: "en_US",
+    images: [{ url: "https://codeabyss.vercel.app/og-image.png", width: 1200, height: 630, alt: "CodeAbyss - Free AI Cloud IDE" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "CodeAbyss – Free AI Cloud IDE",
     description: "Free AI-powered cloud IDE with autonomous coding agent. 8+ languages, zero setup.",
+    images: ["https://codeabyss.vercel.app/og-image.png"],
   },
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  alternates: { canonical: "https://CodeAbyss.dev" },
+  alternates: { canonical: "https://codeabyss.vercel.app" },
 };
 
 export default function RootLayout({
@@ -36,7 +38,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="" />
-        <link rel="canonical" href="https://CodeAbyss.dev" />
+        <link rel="canonical" href="https://codeabyss.vercel.app" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -44,7 +46,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebApplication",
               name: "CodeAbyss",
-              url: "https://CodeAbyss.dev",
+              url: "https://codeabyss.vercel.app",
               description: "Free AI-powered cloud IDE and online compiler with autonomous coding agent.",
               applicationCategory: "DeveloperApplication",
               operatingSystem: "Web",
