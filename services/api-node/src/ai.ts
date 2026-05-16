@@ -18,7 +18,7 @@ export async function runAgent(input: AgentInput): Promise<AgentResult> {
 
   // Always try AI first for structured code generation
   const system = [
-    "You are NovaForge, an autonomous coding agent for a browser IDE.",
+    "You are CodeAbyss, an autonomous coding agent for a browser IDE.",
     "When asked to build something, respond with ACTUAL FILE CONTENTS.",
     "Format your response as a series of FILE blocks like this:",
     "===FILE: path/to/file.ext===",
@@ -149,7 +149,7 @@ async function callOpenRouter(prompt: string, browserKey?: string): Promise<Agen
       "content-type": "application/json",
       authorization: `Bearer ${key}`,
       "http-referer": "http://localhost:3000",
-      "x-title": "NovaForge"
+      "x-title": "CodeAbyss"
     },
     body: JSON.stringify({
       model: config.openRouterModel,
@@ -306,7 +306,7 @@ function generateEcommerce(): AgentResult {
 
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2026 ShopForge. Built with NovaForge.</p>
+      <p>&copy; 2026 ShopForge. Built with CodeAbyss.</p>
     </div>
   </footer>
 
@@ -661,7 +661,7 @@ function generatePortfolio(): AgentResult {
   <section id="skills" class="section dark"><div class="container"><h2>Skills</h2><div class="skill-grid"><div class="skill-card">⚛️<h3>React</h3></div><div class="skill-card">▲<h3>Next.js</h3></div><div class="skill-card">🟢<h3>Node.js</h3></div><div class="skill-card">🐍<h3>Python</h3></div><div class="skill-card">🗄️<h3>PostgreSQL</h3></div><div class="skill-card">🐳<h3>Docker</h3></div></div></div></section>
   <section id="projects" class="section"><div class="container"><h2>Projects</h2><div class="project-grid"><div class="project-card"><h3>🛒 E-Commerce Platform</h3><p>Full-stack store with payment integration</p><div class="tags"><span>React</span><span>Node.js</span><span>Stripe</span></div></div><div class="project-card"><h3>📊 Analytics Dashboard</h3><p>Real-time data visualization tool</p><div class="tags"><span>Next.js</span><span>D3.js</span><span>PostgreSQL</span></div></div><div class="project-card"><h3>🤖 AI Chat Bot</h3><p>NLP-powered customer support bot</p><div class="tags"><span>Python</span><span>FastAPI</span><span>GPT</span></div></div></div></div></section>
   <section id="contact" class="section dark"><div class="container"><h2>Get In Touch</h2><form class="contact-form"><input type="text" placeholder="Name" required><input type="email" placeholder="Email" required><textarea placeholder="Message" rows="5" required></textarea><button type="submit" class="btn">Send Message</button></form></div></section>
-  <footer><p>&copy; 2026 Your Name. Built with NovaForge.</p></footer>
+  <footer><p>&copy; 2026 Your Name. Built with CodeAbyss.</p></footer>
 </body></html>`,
     "style.css": `*{margin:0;padding:0;box-sizing:border-box}:root{--primary:#00e5ff;--bg:#0a0e17;--surface:#111827;--surface2:#1e293b;--text:#e2e8f0;--dim:#94a3b8}body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
 .container{max-width:1000px;margin:0 auto;padding:0 20px}.highlight{color:var(--primary)}.btn{display:inline-block;padding:12px 28px;background:var(--primary);color:var(--bg);border:none;border-radius:10px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .3s}.btn:hover{background:#00b8d4;transform:translateY(-2px)}
@@ -687,7 +687,7 @@ function generateLandingPage(): AgentResult {
 <section class="hero"><div class="container"><h1>Build something <span>amazing</span></h1><p>The all-in-one platform for modern teams. Ship faster, collaborate better.</p><div class="cta-group"><a class="btn">Start Free Trial</a><a class="btn btn-outline">Watch Demo</a></div></div></section>
 <section id="features" class="features"><div class="container"><h2>Features</h2><div class="grid"><div class="card">⚡<h3>Lightning Fast</h3><p>Built for speed from the ground up.</p></div><div class="card">🔒<h3>Secure</h3><p>Enterprise-grade security by default.</p></div><div class="card">📊<h3>Analytics</h3><p>Real-time insights at your fingertips.</p></div></div></div></section>
 <section id="pricing" class="pricing"><div class="container"><h2>Pricing</h2><div class="grid"><div class="card"><h3>Free</h3><div class="price">$0</div><ul><li>✓ 3 Projects</li><li>✓ Basic Analytics</li><li>✓ Community Support</li></ul><a class="btn btn-outline">Get Started</a></div><div class="card featured"><h3>Pro</h3><div class="price">$19/mo</div><ul><li>✓ Unlimited Projects</li><li>✓ Advanced Analytics</li><li>✓ Priority Support</li><li>✓ Custom Domains</li></ul><a class="btn">Start Free Trial</a></div></div></div></section>
-<footer><p>&copy; 2026 Product. Built with NovaForge.</p></footer></body></html>`,
+<footer><p>&copy; 2026 Product. Built with CodeAbyss.</p></footer></body></html>`,
     "style.css": `*{margin:0;padding:0;box-sizing:border-box}:root{--primary:#00e5ff;--bg:#0a0e17;--surface:#111827;--surface2:#1e293b;--text:#e2e8f0;--dim:#94a3b8}body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
 .container{max-width:1000px;margin:0 auto;padding:0 20px}a{text-decoration:none;color:var(--primary)}
 .btn{display:inline-block;padding:12px 28px;background:var(--primary);color:var(--bg);border-radius:10px;font-weight:600;transition:all .3s}.btn:hover{background:#00b8d4;transform:translateY(-2px)}.btn-outline{background:transparent;border:1px solid var(--primary);color:var(--primary)}.btn-sm{padding:8px 16px;font-size:.9rem}
@@ -837,28 +837,28 @@ document.getElementById("products").innerHTML=products.map(p=>\`<div class="prod
 
 function generatePythonApp(prompt: string): AgentResult {
   const files: Record<string, string> = {
-    "main.py": `# ${prompt}\n\ndef main():\n    print("Hello from NovaForge Python!")\n    print("Project: ${prompt.slice(0, 60)}")\n\nif __name__ == "__main__":\n    main()`
+    "main.py": `# ${prompt}\n\ndef main():\n    print("Hello from CodeAbyss Python!")\n    print("Project: ${prompt.slice(0, 60)}")\n\nif __name__ == "__main__":\n    main()`
   };
   return { message: "Created a Python starter project.", steps: ["Created main.py"], files };
 }
 
 function generateJavaApp(prompt: string): AgentResult {
   const files: Record<string, string> = {
-    "Main.java": `// ${prompt}\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello from NovaForge Java!");\n        System.out.println("Project: ${prompt.slice(0, 60)}");\n    }\n}`
+    "Main.java": `// ${prompt}\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello from CodeAbyss Java!");\n        System.out.println("Project: ${prompt.slice(0, 60)}");\n    }\n}`
   };
   return { message: "Created a Java starter project.", steps: ["Created Main.java"], files };
 }
 
 function generateRustApp(prompt: string): AgentResult {
   const files: Record<string, string> = {
-    "main.rs": `// ${prompt}\nfn main() {\n    println!("Hello from NovaForge Rust!");\n    println!("Project: ${prompt.slice(0, 60)}");\n}`
+    "main.rs": `// ${prompt}\nfn main() {\n    println!("Hello from CodeAbyss Rust!");\n    println!("Project: ${prompt.slice(0, 60)}");\n}`
   };
   return { message: "Created a Rust starter project.", steps: ["Created main.rs"], files };
 }
 
 function generateCppApp(prompt: string): AgentResult {
   const files: Record<string, string> = {
-    "main.cpp": `// ${prompt}\n#include <iostream>\nint main() {\n    std::cout << "Hello from NovaForge C++!" << std::endl;\n    std::cout << "Project: ${prompt.slice(0, 60)}" << std::endl;\n    return 0;\n}`
+    "main.cpp": `// ${prompt}\n#include <iostream>\nint main() {\n    std::cout << "Hello from CodeAbyss C++!" << std::endl;\n    std::cout << "Project: ${prompt.slice(0, 60)}" << std::endl;\n    return 0;\n}`
   };
   return { message: "Created a C++ starter project.", steps: ["Created main.cpp"], files };
 }
@@ -866,7 +866,7 @@ function generateCppApp(prompt: string): AgentResult {
 function generateGenericHTML(prompt: string): AgentResult {
   const files: Record<string, string> = {
     "index.html": `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${prompt.slice(0, 40)}</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="app"><h1>🚀 ${prompt.slice(0, 50)}</h1><p>Built with NovaForge</p><div class="card"><p>Edit these files to build your project!</p></div></div>
+<body><div class="app"><h1>🚀 ${prompt.slice(0, 50)}</h1><p>Built with CodeAbyss</p><div class="card"><p>Edit these files to build your project!</p></div></div>
 <script src="script.js"></script></body></html>`,
     "style.css": `*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0e17;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
 .app{text-align:center;padding:40px}.app h1{font-size:2rem;margin-bottom:12px;color:#00e5ff}.card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:24px;margin-top:20px}`,

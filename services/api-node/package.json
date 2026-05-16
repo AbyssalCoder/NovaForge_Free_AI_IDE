@@ -1,5 +1,5 @@
 {
-  "name": "@novaforge/api-node",
+  "name": "@codeabyss/api-node",
   "version": "0.1.0",
   "private": true,
   "type": "module",

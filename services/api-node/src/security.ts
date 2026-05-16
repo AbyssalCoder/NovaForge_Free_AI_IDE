@@ -49,7 +49,7 @@ export function assertCommandAllowed(command: string) {
   const trimmed = command.trim();
   if (!trimmed) return;
   if (deniedPatterns.some((pattern) => pattern.test(trimmed))) {
-    throw new Error("Command blocked by NovaForge local guardrails.");
+    throw new Error("Command blocked by CodeAbyss local guardrails.");
   }
   const segments = trimmed.split("&&").map((segment) => segment.trim()).filter(Boolean);
   for (const segment of segments) {

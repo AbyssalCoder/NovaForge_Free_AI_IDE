@@ -136,6 +136,6 @@ if (!existingAdmin) {
 const seedProject = db.prepare("SELECT id FROM projects WHERE id = ?").get("demo-js");
 if (!seedProject) {
   db.prepare("INSERT INTO projects (id, name, owner_id, visibility, template) VALUES (?, ?, ?, ?, ?)").run(
-    "demo-js", "NovaForge Demo App", "admin-001", "public", "nextjs"
+    "demo-js", "CodeAbyss Demo App", "admin-001", "public", "nextjs"
   );
 }

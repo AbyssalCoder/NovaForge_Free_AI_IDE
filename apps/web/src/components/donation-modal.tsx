@@ -37,7 +37,7 @@ export function DonationModal({ open, onClose }: Props) {
   }
 
   function copyUPI() {
-    navigator.clipboard.writeText("novaforge@upi");
+    navigator.clipboard.writeText("CodeAbyss@upi");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -66,7 +66,7 @@ export function DonationModal({ open, onClose }: Props) {
                 <Heart className="h-16 w-16 text-pink-500" fill="currentColor" />
               </motion.div>
               <h3 className="text-xl font-bold text-white">Thank You!</h3>
-              <p className="text-sm text-slate-400">Your support means everything to NovaForge.</p>
+              <p className="text-sm text-slate-400">Your support means everything to CodeAbyss.</p>
             </motion.div>
           ) : showQR ? (
             <div className="flex flex-col items-center gap-4">
@@ -78,7 +78,7 @@ export function DonationModal({ open, onClose }: Props) {
                 <Image src="/qr-donate.jpg" alt="Donation QR Code" width={192} height={192} className="h-48 w-48 object-contain" />
               </div>
               <div className="flex w-full items-center gap-2">
-                <input value="novaforge@upi" readOnly className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300" />
+                <input value="CodeAbyss@upi" readOnly className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300" />
                 <button onClick={copyUPI} className="rounded-md border border-cyanForge/40 bg-cyanForge/10 px-3 py-2 text-sm text-cyanForge">
                   {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </button>
@@ -93,11 +93,11 @@ export function DonationModal({ open, onClose }: Props) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-pink-500" />
-                  <h3 className="text-lg font-bold text-white">Support NovaForge</h3>
+                  <h3 className="text-lg font-bold text-white">Support CodeAbyss</h3>
                 </div>
                 <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
               </div>
-              <p className="mt-2 text-sm text-slate-400">NovaForge is free forever. Your donation helps keep it running.</p>
+              <p className="mt-2 text-sm text-slate-400">CodeAbyss is free forever. Your donation helps keep it running.</p>
               <div className="mt-4 grid grid-cols-4 gap-2">
                 {presets.map((p) => (
                   <button

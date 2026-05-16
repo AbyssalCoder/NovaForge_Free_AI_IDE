@@ -43,7 +43,7 @@ export function SettingsModal({ open, onClose, onSettingsChange }: Props) {
     }
 
     // Also save locally
-    window.localStorage.setItem("novaforge_settings", JSON.stringify(settings));
+    window.localStorage.setItem("CodeAbyss_settings", JSON.stringify(settings));
     onSettingsChange(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);

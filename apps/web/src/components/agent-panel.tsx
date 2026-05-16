@@ -97,7 +97,7 @@ export function AgentPanel({ provider, apiKey, files, workspaceId = "demo-js", o
     {
       id: nextId(),
       role: "system",
-      content: "NovaForge Agent is ready. Describe what you want to build — I'll generate the full project and write it to your workspace.",
+      content: "CodeAbyss Agent is ready. Describe what you want to build — I'll generate the full project and write it to your workspace.",
       timestamp: new Date(),
     },
   ]);
@@ -162,7 +162,7 @@ export function AgentPanel({ provider, apiKey, files, workspaceId = "demo-js", o
         method: "POST",
         headers: {
           "content-type": "application/json",
-          ...(apiKey ? { "x-novaforge-api-key": apiKey } : {}),
+          ...(apiKey ? { "x-CodeAbyss-api-key": apiKey } : {}),
         },
         body: JSON.stringify({ provider, prompt: text, projectId: workspaceId, files }),
       });
@@ -442,7 +442,7 @@ export function AgentPanel({ provider, apiKey, files, workspaceId = "demo-js", o
       <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
         <div className="flex items-center gap-2 text-sm font-medium text-slate-100">
           <Sparkles className="h-4 w-4 text-cyanForge" />
-          NovaForge Agent
+          CodeAbyss Agent
         </div>
         <div className="flex items-center gap-1.5">
           <span className="flex items-center gap-1 rounded-md border border-mintForge/30 bg-mintForge/10 px-1.5 py-0.5 text-[10px] font-mono text-mintForge">
@@ -467,7 +467,7 @@ export function AgentPanel({ provider, apiKey, files, workspaceId = "demo-js", o
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask NovaForge to build something..."
+            placeholder="Ask CodeAbyss to build something..."
             rows={1}
             className="flex-1 resize-none bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-500"
             style={{ minHeight: "20px", maxHeight: "80px" }}

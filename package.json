@@ -1,8 +1,8 @@
 {
-  "name": "novaforge-free-ai-ide",
+  "name": "codeabyss-ai-ide",
   "version": "0.1.0",
   "private": true,
-  "description": "NovaForge: zero-budget browser AI Cloud IDE and autonomous coding agent platform.",
+  "description": "CodeAbyss: zero-budget browser AI Cloud IDE and autonomous coding agent platform.",
   "workspaces": [
     "apps/web",
     "services/api-node"

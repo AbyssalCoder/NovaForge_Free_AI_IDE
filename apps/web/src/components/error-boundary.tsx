@@ -16,7 +16,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("NovaForge error:", error, info);
+    console.error("CodeAbyss error:", error, info);
   }
 
   render() {
@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="mb-4 text-sm text-slate-400">{this.state.error}</p>
             <button onClick={() => { this.setState({ hasError: false, error: "" }); window.location.reload(); }}
               className="rounded-md bg-cyan-500 px-6 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
-              Reload NovaForge
+              Reload CodeAbyss
             </button>
           </div>
         </div>

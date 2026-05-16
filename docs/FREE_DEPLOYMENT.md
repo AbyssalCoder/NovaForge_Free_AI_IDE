@@ -1,6 +1,6 @@
 # Free Deployment Guide
 
-NovaForge is designed to work on free tiers first.
+CodeAbyss is designed to work on free tiers first.
 
 ## Frontend: Vercel Free Tier
 
@@ -34,7 +34,7 @@ Create two free web services:
 ```env
 NODE_API_PORT=8787
 JWT_SECRET=replace-with-random-secret
-SQLITE_PATH=./data/novaforge.db
+SQLITE_PATH=./data/CodeAbyss.db
 WORKSPACE_ROOT=./workspaces
 ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
 PYTHON_SERVICE_URL=https://your-python-api.onrender.com
@@ -78,7 +78,7 @@ Free-tier optional:
 - Gemini AI Studio BYO key
 - OpenRouter free models when available
 
-Never require paid keys to use NovaForge.
+Never require paid keys to use CodeAbyss.
 
 ## Storage
 

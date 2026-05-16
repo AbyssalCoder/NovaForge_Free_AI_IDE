@@ -73,7 +73,7 @@ export function TerminalPanel({ workspaceId = "demo-js" }: { workspaceId?: strin
       });
 
       terminal.writeln("\x1b[1;36m╔══════════════════════════════════╗\x1b[0m");
-      terminal.writeln("\x1b[1;36m║\x1b[0m   \x1b[1mNovaForge Terminal\x1b[0m            \x1b[1;36m║\x1b[0m");
+      terminal.writeln("\x1b[1;36m║\x1b[0m   \x1b[1mCodeAbyss Terminal\x1b[0m            \x1b[1;36m║\x1b[0m");
       terminal.writeln("\x1b[1;36m╚══════════════════════════════════╝\x1b[0m");
       terminal.write("\x1b[36m❯\x1b[0m ");
 

@@ -52,7 +52,7 @@ app.get("/", (_req, res) => {
 
 // ── Health ────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "novaforge-node-api", sqlite: true, uptime: process.uptime() });
+  res.json({ ok: true, service: "CodeAbyss-node-api", sqlite: true, uptime: process.uptime() });
 });
 
 app.get("/api/health", async (_req, res) => {
@@ -226,7 +226,7 @@ app.post("/api/agent/run", async (req, res) => {
   db.prepare("INSERT INTO agent_runs (id, project_id, user_id, provider, prompt, status) VALUES (?, ?, ?, ?, ?, ?)").run(runId, parsed.data.projectId, userId || null, parsed.data.provider, sanitizeText(parsed.data.prompt), "running");
 
   try {
-    const result = await runAgent({ provider: parsed.data.provider, prompt: sanitizeText(parsed.data.prompt), apiKey: req.header("x-novaforge-api-key") || undefined, files: parsed.data.files });
+    const result = await runAgent({ provider: parsed.data.provider, prompt: sanitizeText(parsed.data.prompt), apiKey: req.header("x-CodeAbyss-api-key") || undefined, files: parsed.data.files });
 
     // Actually write generated files to the workspace
     const createdFiles: string[] = [];
@@ -322,7 +322,7 @@ app.post("/api/subscriptions/upgrade", requireAuth, async (req, res) => {
     await fetch(`https://ntfy.sh/${config.ntfyTopic}`, {
       method: "POST",
       headers: {
-        "Title": "NovaForge: New PRO Upgrade Request",
+        "Title": "CodeAbyss: New PRO Upgrade Request",
         "Priority": "high",
         "Tags": "money_with_wings",
       },
@@ -471,7 +471,7 @@ const server = http.createServer(app);
 attachTerminal(server);
 
 server.listen(config.port, () => {
-  console.log(`NovaForge Node API listening on http://localhost:${config.port}`);
+  console.log(`CodeAbyss Node API listening on http://localhost:${config.port}`);
 });
 
 // Graceful shutdown

@@ -1,10 +1,10 @@
-# NovaForge – Free AI Cloud IDE & Online Compiler
+# CodeAbyss – Free AI Cloud IDE & Online Compiler
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node 22+](https://img.shields.io/badge/Node-22%2B-green)](https://nodejs.org)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 
-NovaForge is a **free, open-source, AI-powered cloud IDE** and autonomous coding agent. Write, run, and preview code in **8+ languages** directly in your browser — no signup required. Powered by free AI providers (Gemini, OpenRouter, Ollama).
+CodeAbyss is a **free, open-source, AI-powered cloud IDE** and autonomous coding agent. Write, run, and preview code in **8+ languages** directly in your browser — no signup required. Powered by free AI providers (Gemini, OpenRouter, Ollama).
 
 ## Features
 
@@ -46,7 +46,7 @@ NovaForge is a **free, open-source, AI-powered cloud IDE** and autonomous coding
 ## Quick Start
 
 ```powershell
-cd "$env:USERPROFILE\Desktop\NovaForge_Free_AI_IDE"
+cd "$env:USERPROFILE\Desktop\CodeAbyss_Free_AI_IDE"
 npm install
 Copy-Item .env.example .env
 npm run dev

@@ -46,8 +46,8 @@ type UserInfo = { id: string; username: string; role: string; plan: string } | n
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "ssr-placeholder";
-  let sid = window.sessionStorage.getItem("novaforge_sid");
-  if (!sid) { sid = "anon-" + Math.random().toString(36).slice(2, 10); window.sessionStorage.setItem("novaforge_sid", sid); }
+  let sid = window.sessionStorage.getItem("CodeAbyss_sid");
+  if (!sid) { sid = "anon-" + Math.random().toString(36).slice(2, 10); window.sessionStorage.setItem("CodeAbyss_sid", sid); }
   return sid;
 }
 
@@ -109,12 +109,12 @@ export default function IDE() {
 
   // Boot: check token, load settings, connect backend
   useEffect(() => {
-    const savedKey = window.localStorage.getItem("novaforge_gemini_key") || "";
+    const savedKey = window.localStorage.getItem("CodeAbyss_gemini_key") || "";
     if (savedKey) { setApiKey(savedKey); setProvider("auto"); }
 
     // Load local settings
     try {
-      const s = JSON.parse(window.localStorage.getItem("novaforge_settings") || "{}");
+      const s = JSON.parse(window.localStorage.getItem("CodeAbyss_settings") || "{}");
       if (s.editor_font_size) setEditorFontSize(s.editor_font_size);
     } catch {}
 
@@ -142,7 +142,7 @@ export default function IDE() {
   }, []);
 
   useEffect(() => {
-    if (apiKey) window.localStorage.setItem("novaforge_gemini_key", apiKey);
+    if (apiKey) window.localStorage.setItem("CodeAbyss_gemini_key", apiKey);
   }, [apiKey]);
 
   // Refresh workspace when workspaceId changes (login/logout)
@@ -333,7 +333,7 @@ export default function IDE() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070d]">
           <div className="flex flex-col items-center gap-3">
             <Sparkles className="h-8 w-8 animate-pulse text-cyanForge" />
-            <p className="text-sm text-slate-400">Loading NovaForge...</p>
+            <p className="text-sm text-slate-400">Loading CodeAbyss...</p>
           </div>
         </div>
       )}
@@ -345,7 +345,7 @@ export default function IDE() {
               <Sparkles className="h-5 w-5 text-cyanForge" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-wide text-white md:text-2xl">NovaForge</h1>
+              <h1 className="text-xl font-semibold tracking-wide text-white md:text-2xl">CodeAbyss</h1>
               <p className="text-xs text-slate-400">{status}</p>
             </div>
           </div>
@@ -467,7 +467,7 @@ export default function IDE() {
             <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
               <ActionButton icon={<Heart className="h-4 w-4" />} label="Donate" onClick={() => setShowDonation(true)} accent />
               <ActionButton icon={<Crown className="h-4 w-4" />} label="PRO" onClick={() => setShowSubscription(true)} />
-              <ActionButton icon={<Info className="h-4 w-4" />} label="About" onClick={() => showToast("NovaForge IDE v1.0 – Free & Open Source")} />
+              <ActionButton icon={<Info className="h-4 w-4" />} label="About" onClick={() => showToast("CodeAbyss IDE v1.0 – Free & Open Source")} />
               <ActionButton icon={<Settings className="h-4 w-4" />} label="Settings" onClick={() => setShowSettings(true)} />
             </div>
           </aside>
@@ -519,7 +519,7 @@ export default function IDE() {
                     className="w-52 rounded border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300" />
                 </div>
                 {previewUrl ? (
-                  <iframe title="NovaForge preview" src={previewUrl} className="h-full min-h-[170px] w-full bg-white" sandbox="allow-scripts" />
+                  <iframe title="CodeAbyss preview" src={previewUrl} className="h-full min-h-[170px] w-full bg-white" sandbox="allow-scripts" />
                 ) : (
                   <div className="flex h-[170px] items-center justify-center text-xs text-slate-500">
                     Enter a URL above to preview
@@ -586,7 +586,7 @@ function ToolPane({
   if (activeTab === "Home") {
     return (
       <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/50 p-3 text-xs text-slate-400">
-        <div className="flex items-center gap-2 text-slate-100"><Home className="h-4 w-4 text-cyanForge" /> NovaForge IDE</div>
+        <div className="flex items-center gap-2 text-slate-100"><Home className="h-4 w-4 text-cyanForge" /> CodeAbyss IDE</div>
         <p className="mt-2">Create files, run code in Docker sandboxes, and use AI models with your own API key.</p>
         <p className="mt-1 text-slate-500">Ctrl+S to save · Ctrl+Enter to run</p>
       </div>
@@ -694,14 +694,14 @@ function commandFor(file: string) {
 }
 
 function starterContentFor(file: string) {
-  if (file.endsWith(".py")) return "print('Hello from NovaForge')\n";
-  if (file.endsWith(".c")) return '#include <stdio.h>\n\nint main(void) {\n  printf("Hello from NovaForge C\\n");\n  return 0;\n}\n';
-  if (file.endsWith(".cpp")) return '#include <iostream>\n\nint main() {\n  std::cout << "Hello from NovaForge C++" << std::endl;\n  return 0;\n}\n';
-  if (file.endsWith(".java")) return 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello from NovaForge Java");\n  }\n}\n';
-  if (file.endsWith(".rs")) return 'fn main() {\n    println!("Hello from NovaForge Rust");\n}\n';
-  if (file.endsWith(".html")) return "<!doctype html>\n<html><body><h1>Hello from NovaForge</h1></body></html>\n";
+  if (file.endsWith(".py")) return "print('Hello from CodeAbyss')\n";
+  if (file.endsWith(".c")) return '#include <stdio.h>\n\nint main(void) {\n  printf("Hello from CodeAbyss C\\n");\n  return 0;\n}\n';
+  if (file.endsWith(".cpp")) return '#include <iostream>\n\nint main() {\n  std::cout << "Hello from CodeAbyss C++" << std::endl;\n  return 0;\n}\n';
+  if (file.endsWith(".java")) return 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello from CodeAbyss Java");\n  }\n}\n';
+  if (file.endsWith(".rs")) return 'fn main() {\n    println!("Hello from CodeAbyss Rust");\n}\n';
+  if (file.endsWith(".html")) return "<!doctype html>\n<html><body><h1>Hello from CodeAbyss</h1></body></html>\n";
   if (file.endsWith(".css")) return "body {\n  font-family: system-ui, sans-serif;\n}\n";
-  return "console.log('Hello from NovaForge');\n";
+  return "console.log('Hello from CodeAbyss');\n";
 }
 
 function quote(v: string) { return `'${v.replaceAll("'", "'\\''")}'`; }

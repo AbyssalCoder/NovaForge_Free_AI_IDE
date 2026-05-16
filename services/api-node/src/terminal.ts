@@ -34,7 +34,7 @@ export function attachTerminal(server: http.Server) {
         const shellArgs = process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-lc", command];
         const child = spawn(shell, shellArgs, {
           cwd,
-          env: { ...process.env, NOVAFORGE_WORKSPACE: cwd },
+          env: { ...process.env, CodeAbyss_WORKSPACE: cwd },
           windowsHide: true
         });
 

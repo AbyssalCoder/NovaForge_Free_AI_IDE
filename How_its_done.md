@@ -1,8 +1,8 @@
-# How NovaForge Is Done
+# How CodeAbyss Is Done
 
 ## Current Build
 
-NovaForge is a free-first local beta environment:
+CodeAbyss is a free-first local beta environment:
 
 - `apps/web`: Next.js browser IDE with TailwindCSS, Monaco, xterm.js, and Framer Motion.
 - `services/api-node`: Express API, WebSocket terminal, SQLite, AI provider routing, workspace files, and Docker sandbox execution.

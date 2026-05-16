@@ -4,8 +4,8 @@ import path from "node:path";
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
-const jwtSecret = process.env.JWT_SECRET || "novaforge-dev-only-change-me";
-if (jwtSecret === "novaforge-dev-only-change-me" && process.env.NODE_ENV === "production") {
+const jwtSecret = process.env.JWT_SECRET || "CodeAbyss-dev-only-change-me";
+if (jwtSecret === "CodeAbyss-dev-only-change-me" && process.env.NODE_ENV === "production") {
   console.error("FATAL: JWT_SECRET must be set in production. Exiting.");
   process.exit(1);
 }
@@ -13,7 +13,7 @@ if (jwtSecret === "novaforge-dev-only-change-me" && process.env.NODE_ENV === "pr
 export const config = {
   port: Number(process.env.NODE_API_PORT || 8787),
   jwtSecret,
-  sqlitePath: process.env.SQLITE_PATH || path.resolve(process.cwd(), "data/novaforge.db"),
+  sqlitePath: process.env.SQLITE_PATH || path.resolve(process.cwd(), "data/CodeAbyss.db"),
   workspaceRoot: process.env.WORKSPACE_ROOT || path.resolve(process.cwd(), "workspaces"),
   allowedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000").split(","),
   pythonServiceUrl: process.env.PYTHON_SERVICE_URL || "http://127.0.0.1:8788",
@@ -25,6 +25,6 @@ export const config = {
   openRouterModel: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat:free",
   maxWorkspaceSizeMB: Number(process.env.MAX_WORKSPACE_SIZE_MB || 50),
   maxWorkspaceFiles: Number(process.env.MAX_WORKSPACE_FILES || 200),
-  ntfyTopic: process.env.NTFY_TOPIC || "novaforge-admin-alerts",
+  ntfyTopic: process.env.NTFY_TOPIC || "CodeAbyss-admin-alerts",
   adminPhoneNote: process.env.ADMIN_PHONE || "+91 7980458591",
 };

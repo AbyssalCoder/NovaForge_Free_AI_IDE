@@ -12,7 +12,7 @@ const starterFiles: Record<string, string> = {
   "app/page.tsx": `export default function Page() {
   return (
     <main>
-      <h1>Hello from NovaForge</h1>
+      <h1>Hello from CodeAbyss</h1>
       <p>Ask the agent to turn this into a complete app.</p>
     </main>
   );
@@ -24,32 +24,32 @@ const starterFiles: Record<string, string> = {
   font-family: system-ui, sans-serif;
 }
 `,
-  "python/main.py": `print("Hello from NovaForge Python")
+  "python/main.py": `print("Hello from CodeAbyss Python")
 `,
-  "javascript/index.js": `console.log("Hello from NovaForge JavaScript");
+  "javascript/index.js": `console.log("Hello from CodeAbyss JavaScript");
 `,
   "c/main.c": `#include <stdio.h>
 
 int main(void) {
-  printf("Hello from NovaForge C\\n");
+  printf("Hello from CodeAbyss C\\n");
   return 0;
 }
 `,
   "cpp/main.cpp": `#include <iostream>
 
 int main() {
-  std::cout << "Hello from NovaForge C++" << std::endl;
+  std::cout << "Hello from CodeAbyss C++" << std::endl;
   return 0;
 }
 `,
   "java/Main.java": `public class Main {
   public static void main(String[] args) {
-    System.out.println("Hello from NovaForge Java");
+    System.out.println("Hello from CodeAbyss Java");
   }
 }
 `,
   "rust/main.rs": `fn main() {
-    println!("Hello from NovaForge Rust");
+    println!("Hello from CodeAbyss Rust");
 }
 `
 };

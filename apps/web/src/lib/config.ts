@@ -7,7 +7,7 @@ export const demoFiles = {
   "app/page.tsx": `export default function Page() {
   return (
     <main>
-      <h1>Hello from NovaForge</h1>
+      <h1>Hello from CodeAbyss</h1>
       <p>Ask the agent to turn this into a complete app.</p>
     </main>
   );
@@ -24,15 +24,15 @@ export const demoFiles = {
 // Auth helpers
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem("novaforge_token");
+  return window.localStorage.getItem("CodeAbyss_token");
 }
 
 export function setAuthToken(token: string) {
-  window.localStorage.setItem("novaforge_token", token);
+  window.localStorage.setItem("CodeAbyss_token", token);
 }
 
 export function clearAuthToken() {
-  window.localStorage.removeItem("novaforge_token");
+  window.localStorage.removeItem("CodeAbyss_token");
 }
 
 export function authHeaders(): Record<string, string> {

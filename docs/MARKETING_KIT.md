@@ -1,7 +1,7 @@
-# NovaForge Marketing Kit - Ready to Post
+# CodeAbyss Marketing Kit - Ready to Post
 
 ## 🔥 One-liner
-NovaForge — A free, open-source AI-powered IDE that runs in your browser. Write code in 7+ languages, get AI assistance, and deploy — all without installing anything.
+CodeAbyss — A free, open-source AI-powered IDE that runs in your browser. Write code in 7+ languages, get AI assistance, and deploy — all without installing anything.
 
 ---
 
@@ -11,7 +11,7 @@ NovaForge — A free, open-source AI-powered IDE that runs in your browser. Writ
 
 **Body:**
 
-Hey everyone! I've been working on **NovaForge** — a free, open-source cloud IDE with built-in AI code assistance.
+Hey everyone! I've been working on **CodeAbyss** — a free, open-source cloud IDE with built-in AI code assistance.
 
 **What it does:**
 - 🧠 AI agent that can write, edit, and explain code (powered by free AI models)
@@ -25,7 +25,7 @@ Hey everyone! I've been working on **NovaForge** — a free, open-source cloud I
 **Tech stack:** Next.js 15, Express, SQLite, Monaco Editor, xterm.js, Docker, Framer Motion
 
 **Live:** [DEPLOY_URL]
-**GitHub:** https://github.com/AbyssalCoder/NovaForge_Free_AI_IDE
+**GitHub:** https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 Would love feedback! What features would you want added?
 
@@ -34,7 +34,7 @@ Would love feedback! What features would you want added?
 ## 🐦 Twitter/X Thread
 
 **Tweet 1:**
-I just shipped NovaForge — a free AI-powered IDE that runs in your browser 🚀
+I just shipped CodeAbyss — a free AI-powered IDE that runs in your browser 🚀
 
 ✅ 7+ languages (Python, JS, TS, C, C++, Java, Rust)
 ✅ Built-in AI coding assistant
@@ -54,7 +54,7 @@ The tech stack:
 - Docker for safe code execution
 - OpenRouter for free AI models
 
-All open-source: github.com/AbyssalCoder/NovaForge_Free_AI_IDE
+All open-source: github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 **Tweet 3:**
 Features I'm most proud of:
@@ -67,7 +67,7 @@ Features I'm most proud of:
 **Tweet 4:**
 Built this as a side project to make coding accessible for everyone — especially students who can't afford expensive IDEs or powerful laptops.
 
-If you find it useful, a ⭐ on GitHub means the world: github.com/AbyssalCoder/NovaForge_Free_AI_IDE
+If you find it useful, a ⭐ on GitHub means the world: github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 #buildinpublic #webdev #opensource #AI #coding
 
@@ -77,7 +77,7 @@ If you find it useful, a ⭐ on GitHub means the world: github.com/AbyssalCoder/
 
 **I built a free AI-powered IDE — and open-sourced it.**
 
-After months of work, I'm launching **NovaForge** — a browser-based IDE with:
+After months of work, I'm launching **CodeAbyss** — a browser-based IDE with:
 
 🧠 AI-powered code generation and assistance
 💻 Support for 7+ programming languages
@@ -85,12 +85,12 @@ After months of work, I'm launching **NovaForge** — a browser-based IDE with:
 🔒 Per-user isolated workspaces
 📱 Mobile-responsive design
 
-**Why?** Because not everyone has access to expensive tools or powerful hardware. NovaForge runs entirely in the browser — no downloads, no setup, no cost.
+**Why?** Because not everyone has access to expensive tools or powerful hardware. CodeAbyss runs entirely in the browser — no downloads, no setup, no cost.
 
 **Tech:** Next.js 15, Express, Monaco Editor, SQLite, Docker, xterm.js
 
 Try it: [DEPLOY_URL]
-Star it: https://github.com/AbyssalCoder/NovaForge_Free_AI_IDE
+Star it: https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 #OpenSource #WebDevelopment #AI #Coding #SideProject #Innovation
 
@@ -101,19 +101,19 @@ Star it: https://github.com/AbyssalCoder/NovaForge_Free_AI_IDE
 **Tagline:** Free AI-powered IDE in your browser — code in 7+ languages with AI assistance
 
 **Description:**
-NovaForge is a free, open-source cloud IDE with built-in AI code assistance. Write code in Python, JavaScript, TypeScript, C, C++, Java, and Rust — all from your browser. Features include Docker-sandboxed execution, real-time terminal, per-user workspaces, and a responsive design that works on any device.
+CodeAbyss is a free, open-source cloud IDE with built-in AI code assistance. Write code in Python, JavaScript, TypeScript, C, C++, Java, and Rust — all from your browser. Features include Docker-sandboxed execution, real-time terminal, per-user workspaces, and a responsive design that works on any device.
 
 **Maker Comment:**
-I built NovaForge because I believe everyone should have access to powerful development tools regardless of their hardware or budget. The AI assistant helps beginners learn and experts move faster. It's completely open-source and the free tier is genuinely useful (50 AI requests/day, all languages, Docker execution).
+I built CodeAbyss because I believe everyone should have access to powerful development tools regardless of their hardware or budget. The AI assistant helps beginners learn and experts move faster. It's completely open-source and the free tier is genuinely useful (50 AI requests/day, all languages, Docker execution).
 
 ---
 
 ## 📰 Hacker News (Show HN)
 
-**Title:** Show HN: NovaForge – Free open-source AI IDE in the browser (7+ languages, Docker sandbox)
+**Title:** Show HN: CodeAbyss – Free open-source AI IDE in the browser (7+ languages, Docker sandbox)
 
 **Body:**
-Hi HN! I built NovaForge, a free browser-based IDE with AI coding assistance.
+Hi HN! I built CodeAbyss, a free browser-based IDE with AI coding assistance.
 
 Key features:
 - Monaco editor with full language support
@@ -130,7 +130,7 @@ Security: JWT auth with token blacklisting, command injection prevention, worksp
 Free tier: 50 AI requests/day, all languages, Docker execution
 
 Live: [DEPLOY_URL]
-Source: https://github.com/AbyssalCoder/NovaForge_Free_AI_IDE
+Source: https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE
 
 ---
 
