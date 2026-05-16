@@ -45,6 +45,7 @@ type ToolTab = "Home" | "File" | "View" | "Run";
 type UserInfo = { id: string; username: string; role: string; plan: string } | null;
 
 function getSessionId(): string {
+  if (typeof window === "undefined") return "ssr-placeholder";
   let sid = window.sessionStorage.getItem("novaforge_sid");
   if (!sid) { sid = "anon-" + Math.random().toString(36).slice(2, 10); window.sessionStorage.setItem("novaforge_sid", sid); }
   return sid;

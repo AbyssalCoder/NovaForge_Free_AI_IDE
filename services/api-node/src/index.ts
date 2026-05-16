@@ -104,8 +104,9 @@ app.get("/api/admin/users", requireAuth, requireAdmin, (_req, res) => {
 });
 
 app.delete("/api/admin/users/:id", requireAuth, requireAdmin, (req, res) => {
-  if (req.params.id === "admin-001") { res.status(400).json({ error: "Cannot delete admin account." }); return; }
-  db.prepare("DELETE FROM users WHERE id = ?").run(req.params.id);
+  const id = req.params.id as string;
+  if (id === "admin-001") { res.status(400).json({ error: "Cannot delete admin account." }); return; }
+  db.prepare("DELETE FROM users WHERE id = ?").run(id);
   res.json({ ok: true });
 });
 
@@ -342,7 +343,7 @@ app.get("/api/admin/upgrade-requests", requireAuth, requireAdmin, (_req, res) =>
 
 // Admin: approve an upgrade request
 app.post("/api/admin/upgrade-requests/:id/approve", requireAuth, requireAdmin, (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const request = db.prepare("SELECT * FROM upgrade_requests WHERE id = ?").get(id) as any;
   if (!request) return res.status(404).json({ error: "Request not found" });
   if (request.status !== "pending") return res.status(400).json({ error: `Request already ${request.status}` });
@@ -360,7 +361,7 @@ app.post("/api/admin/upgrade-requests/:id/approve", requireAuth, requireAdmin, (
 
 // Admin: reject an upgrade request
 app.post("/api/admin/upgrade-requests/:id/reject", requireAuth, requireAdmin, (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const note = typeof req.body?.note === "string" ? sanitizeText(req.body.note).slice(0, 500) : "";
   const request = db.prepare("SELECT * FROM upgrade_requests WHERE id = ?").get(id) as any;
   if (!request) return res.status(404).json({ error: "Request not found" });
@@ -442,8 +443,8 @@ const mimeTypes: Record<string, string> = {
 };
 
 app.get("/preview/:projectId/*", (req, res) => {
-  const projectId = req.params.projectId.replace(/[^a-zA-Z0-9_-]/g, "");
-  const filePath = req.params[0] || "index.html";
+  const projectId = (req.params.projectId as string).replace(/[^a-zA-Z0-9_-]/g, "");
+  const filePath = (req.params as any)[0] || "index.html";
   try {
     const content = readWorkspaceFile(projectId, filePath);
     const ext = path.extname(filePath).toLowerCase();

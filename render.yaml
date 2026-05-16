@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: novaforge-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: services/api-node
+    buildCommand: npm install && npx tsc -p tsconfig.json
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://web-cyan-psi-exrofqp3g8.vercel.app
+      - key: NTFY_TOPIC
+        value: novaforge-admin-alerts
+    healthCheckPath: /health
