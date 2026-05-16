@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     rootDir: services/api-node
-    buildCommand: npm install && npx tsc -p tsconfig.json
+    buildCommand: npm install --include=dev && npm run build
     startCommand: node dist/index.js
     envVars:
       - key: NODE_ENV
@@ -16,4 +16,6 @@ services:
         value: https://web-cyan-psi-exrofqp3g8.vercel.app
       - key: NTFY_TOPIC
         value: novaforge-admin-alerts
+      - key: OPENROUTER_API_KEYS
+        sync: false
     healthCheckPath: /health
