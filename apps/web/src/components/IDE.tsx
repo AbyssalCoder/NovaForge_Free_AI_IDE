@@ -43,6 +43,12 @@ type WorkspaceEntry = { path: string; type: "file" | "folder" };
 type ToolTab = "Home" | "File" | "View" | "Run";
 type UserInfo = { id: string; username: string; role: string; plan: string } | null;
 
+function getSessionId(): string {
+  let sid = window.sessionStorage.getItem("novaforge_sid");
+  if (!sid) { sid = "anon-" + Math.random().toString(36).slice(2, 10); window.sessionStorage.setItem("novaforge_sid", sid); }
+  return sid;
+}
+
 export default function IDE() {
   const [files, setFiles] = useState<FileMap>(demoFiles);
   const [activeFile, setActiveFile] = useState("app/page.tsx");
@@ -61,6 +67,7 @@ export default function IDE() {
   const [showAllFiles, setShowAllFiles] = useState(false);
   const [highlightedFile, setHighlightedFile] = useState<string | null>(null);
   const [editorFontSize, setEditorFontSize] = useState(14);
+  const [loading, setLoading] = useState(true);
 
   // Auth & modals
   const [user, setUser] = useState<UserInfo>(null);
@@ -69,6 +76,9 @@ export default function IDE() {
   const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Per-user workspace ID
+  const workspaceId = useMemo(() => user ? `ws-${user.id}` : getSessionId(), [user]);
 
   // Auto-save timer
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,13 +124,15 @@ export default function IDE() {
     }
 
     async function boot() {
+      setLoading(true);
       try {
         await fetch(`${API_URL}/api/health`);
-        await refreshWorkspace();
         await refreshSandboxStatus();
         setStatus("Backend connected");
       } catch {
         setStatus("Frontend running; backend offline");
+      } finally {
+        setLoading(false);
       }
     }
     boot();
@@ -129,6 +141,11 @@ export default function IDE() {
   useEffect(() => {
     if (apiKey) window.localStorage.setItem("novaforge_gemini_key", apiKey);
   }, [apiKey]);
+
+  // Refresh workspace when workspaceId changes (login/logout)
+  useEffect(() => {
+    refreshWorkspace();
+  }, [workspaceId]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -154,18 +171,28 @@ export default function IDE() {
 
   async function refreshWorkspace() {
     try {
-      const treeResponse = await fetch(`${API_URL}/api/workspace/tree?workspaceId=demo-js`);
+      const treeResponse = await fetch(`${API_URL}/api/workspace/tree?workspaceId=${encodeURIComponent(workspaceId)}`);
       const treeData = (await treeResponse.json()) as { entries: WorkspaceEntry[] };
       setEntries(treeData.entries);
       const fileEntries = treeData.entries.filter((e) => e.type === "file");
-      const nextFiles: FileMap = {};
 
-      for (const entry of fileEntries.slice(0, 24)) {
-        const r = await fetch(`${API_URL}/api/workspace/file?workspaceId=demo-js&path=${encodeURIComponent(entry.path)}`);
-        if (r.ok) {
-          const data = (await r.json()) as { content: string };
-          nextFiles[entry.path] = data.content;
-        }
+      // Fetch files in parallel
+      const results = await Promise.all(
+        fileEntries.slice(0, 24).map(async (entry) => {
+          try {
+            const r = await fetch(`${API_URL}/api/workspace/file?workspaceId=${encodeURIComponent(workspaceId)}&path=${encodeURIComponent(entry.path)}`);
+            if (r.ok) {
+              const data = (await r.json()) as { content: string };
+              return [entry.path, data.content] as const;
+            }
+          } catch {}
+          return null;
+        })
+      );
+
+      const nextFiles: FileMap = {};
+      for (const result of results) {
+        if (result) nextFiles[result[0]] = result[1];
       }
 
       if (Object.keys(nextFiles).length > 0) {
@@ -189,10 +216,10 @@ export default function IDE() {
       await fetch(`${API_URL}/api/workspace/file`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workspaceId: "demo-js", path: activeFile, content: files[activeFile] || "" })
+        body: JSON.stringify({ workspaceId, path: activeFile, content: files[activeFile] || "" })
       });
     } catch {}
-  }, [activeFile, files]);
+  }, [activeFile, files, workspaceId]);
 
   async function createFile() {
     const path = newFilePath.trim();
@@ -202,7 +229,7 @@ export default function IDE() {
       await fetch(`${API_URL}/api/workspace/file`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workspaceId: "demo-js", path, content })
+        body: JSON.stringify({ workspaceId, path, content })
       });
     } catch {}
     setFiles((c) => ({ ...c, [path]: content }));
@@ -218,7 +245,7 @@ export default function IDE() {
       await fetch(`${API_URL}/api/workspace/folder`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workspaceId: "demo-js", path })
+        body: JSON.stringify({ workspaceId, path })
       });
     } catch {}
     await refreshWorkspace();
@@ -231,7 +258,7 @@ export default function IDE() {
       await fetch(`${API_URL}/api/workspace/entry`, {
         method: "DELETE",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workspaceId: "demo-js", path: activeFile })
+        body: JSON.stringify({ workspaceId, path: activeFile })
       });
     } catch {}
     await refreshWorkspace();
@@ -248,7 +275,7 @@ export default function IDE() {
       const r = await fetch(`${API_URL}/api/sandbox/run`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ workspaceId: "demo-js", language: spec.language, command: spec.command })
+        body: JSON.stringify({ workspaceId, language: spec.language, command: spec.command })
       });
       const data = (await r.json()) as { ok: boolean; output: string };
       setRunOutput(data.output || (data.ok ? "Done." : "Failed."));
@@ -280,13 +307,15 @@ export default function IDE() {
         await fetch(`${API_URL}/api/workspace/file`, {
           method: "PUT",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ workspaceId: "demo-js", path: fileToSave, content: value || "" })
+          body: JSON.stringify({ workspaceId, path: fileToSave, content: value || "" })
         });
       } catch {}
     }, 2000);
   }
 
   function handleLogout() {
+    // Server-side token revocation
+    apiFetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     clearAuthToken();
     setUser(null);
     showToast("Logged out");
@@ -297,6 +326,14 @@ export default function IDE() {
 
   return (
     <main className="scanline flex h-screen flex-col overflow-hidden bg-void p-2 text-slate-100 md:p-3">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070d]">
+          <div className="flex flex-col items-center gap-3">
+            <Sparkles className="h-8 w-8 animate-pulse text-cyanForge" />
+            <p className="text-sm text-slate-400">Loading NovaForge...</p>
+          </div>
+        </div>
+      )}
       <div className="mx-auto flex h-full max-w-[1920px] flex-col gap-2">
         {/* Header */}
         <header className="glass flex flex-col gap-3 rounded-lg px-4 py-3 md:flex-row md:items-center md:justify-between">
@@ -350,9 +387,9 @@ export default function IDE() {
         </header>
 
         {/* Main Layout */}
-        <section className="grid flex-1 gap-2 overflow-hidden xl:grid-cols-[260px_minmax(0,1fr)_360px]">
+        <section className="grid flex-1 gap-2 overflow-hidden grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_360px]">
           {/* Sidebar */}
-          <aside className="glass thin-scrollbar flex flex-col overflow-y-auto rounded-lg p-3">
+          <aside className="glass thin-scrollbar hidden md:flex flex-col overflow-y-auto rounded-lg p-3">
             <PanelTitle icon={<Files className="h-4 w-4" />} title={`${activeTab} Explorer`} />
 
             <ToolPane
@@ -453,7 +490,7 @@ export default function IDE() {
               <EditorPane language={language} value={files[activeFile]} onChange={updateFile} fontSize={editorFontSize} onSave={() => { saveActiveFile(); showToast("Saved"); }} />
             </div>
             <div className="flex h-[200px] min-h-[150px] shrink-0 gap-2">
-              <div className="flex-1"><TerminalPanel /></div>
+              <div className="flex-1"><TerminalPanel workspaceId={workspaceId} /></div>
               <div className="glass thin-scrollbar w-[260px] overflow-auto rounded-lg p-3">
                 <PanelTitle icon={<Play className="h-4 w-4" />} title="Output" />
                 <pre className="mt-2 whitespace-pre-wrap text-xs text-slate-300">{runOutput}</pre>
@@ -463,7 +500,7 @@ export default function IDE() {
 
           {/* Right Panel: Agent + Preview */}
           <section className="flex flex-col gap-2 overflow-hidden">
-            {showAgent && <AgentPanel provider={provider} apiKey={apiKey} files={files} onStatus={setStatus} onHighlightFile={setHighlightedFile} onFilesCreated={refreshWorkspace} onOpenFile={(path) => { if (files[path] !== undefined) setActiveFile(path); else refreshWorkspace().then(() => setActiveFile(path)); }} onPreviewUrl={(url) => { setPreviewUrl(url); setShowPreview(true); }} />}
+            {showAgent && <AgentPanel provider={provider} apiKey={apiKey} files={files} workspaceId={workspaceId} onStatus={setStatus} onHighlightFile={setHighlightedFile} onFilesCreated={refreshWorkspace} onOpenFile={(path) => { if (files[path] !== undefined) setActiveFile(path); else refreshWorkspace().then(() => setActiveFile(path)); }} onPreviewUrl={(url) => { setPreviewUrl(url); setShowPreview(true); }} />}
 
             {showPreview && (
               <div className="glass flex flex-col overflow-hidden rounded-lg">

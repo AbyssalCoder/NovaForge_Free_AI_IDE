@@ -41,6 +41,7 @@ type Props = {
   provider: string;
   apiKey: string;
   files: Record<string, string>;
+  workspaceId?: string;
   onStatus: (message: string) => void;
   onHighlightFile?: (file: string | null) => void;
   onFilesCreated?: () => void;
@@ -88,9 +89,10 @@ function nextId() { return `msg-${++msgId}`; }
 
 /* ── Component ────────────────────────────────────────────────── */
 
-export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile, onFilesCreated, onOpenFile, onPreviewUrl }: Props) {
+export function AgentPanel({ provider, apiKey, files, workspaceId = "demo-js", onStatus, onHighlightFile, onFilesCreated, onOpenFile, onPreviewUrl }: Props) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const MAX_MESSAGES = 100;
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: nextId(),
@@ -162,7 +164,7 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
           "content-type": "application/json",
           ...(apiKey ? { "x-novaforge-api-key": apiKey } : {}),
         },
-        body: JSON.stringify({ provider, prompt: text, projectId: "demo-js", files }),
+        body: JSON.stringify({ provider, prompt: text, projectId: workspaceId, files }),
       });
       const data = await response.json();
 
@@ -200,14 +202,17 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
         port: hasHTML ? 8787 : undefined,
       };
 
-      setMessages((prev) => prev.filter((m) => m.id !== thinkingId).concat(assistantMsg));
+      setMessages((prev) => {
+        const updated = prev.filter((m) => m.id !== thinkingId).concat(assistantMsg);
+        return updated.length > MAX_MESSAGES ? updated.slice(-MAX_MESSAGES) : updated;
+      });
       setExpandedSteps((prev) => ({ ...prev, [assistantMsg.id]: true }));
 
       if (createdFiles.length > 0) {
         onFilesCreated?.();
         if (createdFiles[0]) onOpenFile?.(createdFiles[0]);
         if (hasHTML) {
-          onPreviewUrl?.(`http://localhost:8787/preview/demo-js/index.html`);
+          onPreviewUrl?.(`${API_URL}/preview/${encodeURIComponent(workspaceId)}/index.html`);
         }
         for (const f of createdFiles) {
           onHighlightFile?.(f);
@@ -224,7 +229,10 @@ export function AgentPanel({ provider, apiKey, files, onStatus, onHighlightFile,
         content: "**Error:** Backend API unreachable at `localhost:8787`.\n\n```\nnpm run dev:node\n```\n\nStart the backend and try again.",
         timestamp: new Date(),
       };
-      setMessages((prev) => prev.filter((m) => m.id !== thinkingId).concat(errorMsg));
+      setMessages((prev) => {
+        const updated = prev.filter((m) => m.id !== thinkingId).concat(errorMsg);
+        return updated.length > MAX_MESSAGES ? updated.slice(-MAX_MESSAGES) : updated;
+      });
       onStatus("Agent API offline");
     } finally {
       setBusy(false);

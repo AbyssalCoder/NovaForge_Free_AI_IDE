@@ -4,7 +4,7 @@ import { TerminalSquare, Trash2, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { WS_URL } from "@/lib/config";
 
-export function TerminalPanel() {
+export function TerminalPanel({ workspaceId = "demo-js" }: { workspaceId?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const termRef = useRef<import("@xterm/xterm").Terminal | null>(null);
@@ -17,7 +17,7 @@ export function TerminalPanel() {
     const terminal = termRef.current;
 
     socketRef.current?.close();
-    const socket = new WebSocket(`${WS_URL}?workspace=demo-js`);
+    const socket = new WebSocket(`${WS_URL}?workspace=${encodeURIComponent(workspaceId)}`);
     socketRef.current = socket;
 
     socket.onopen = () => {
@@ -49,14 +49,6 @@ export function TerminalPanel() {
     async function bootTerminal() {
       const [{ Terminal }, { FitAddon }] = await Promise.all([import("@xterm/xterm"), import("@xterm/addon-fit")]);
       if (disposed || !containerRef.current) return;
-
-      // Load xterm CSS
-      if (!document.querySelector('link[href*="xterm.css"]')) {
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = "https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css";
-        document.head.appendChild(link);
-      }
 
       const terminal = new Terminal({
         cursorBlink: true,
@@ -109,7 +101,7 @@ export function TerminalPanel() {
       });
 
       // Auto-connect
-      const socket = new WebSocket(`${WS_URL}?workspace=demo-js`);
+      const socket = new WebSocket(`${WS_URL}?workspace=${encodeURIComponent(workspaceId)}`);
       socketRef.current = socket;
       socket.onopen = () => {
         setConnected(true);
@@ -122,7 +114,29 @@ export function TerminalPanel() {
       };
       socket.onclose = () => {
         setConnected(false);
-        terminal.writeln("\r\n\x1b[33m● disconnected\x1b[0m");
+        terminal.writeln("\r\n\x1b[33m● disconnected – reconnecting...\x1b[0m");
+        // Auto-reconnect with exponential backoff
+        let delay = 1000;
+        const maxDelay = 15000;
+        function tryReconnect() {
+          if (disposed) return;
+          setTimeout(() => {
+            const rs = new WebSocket(`${WS_URL}?workspace=${encodeURIComponent(workspaceId)}`);
+            rs.onopen = () => {
+              socketRef.current = rs;
+              setConnected(true);
+              terminal.writeln("\r\n\x1b[32m● reconnected\x1b[0m");
+              terminal.write("\x1b[36m❯\x1b[0m ");
+              rs.onmessage = socket.onmessage;
+              rs.onclose = socket.onclose;
+            };
+            rs.onerror = () => {
+              delay = Math.min(delay * 2, maxDelay);
+              tryReconnect();
+            };
+          }, delay);
+        }
+        tryReconnect();
       };
       socket.onerror = () => {
         terminal.writeln("\r\n\x1b[31m● websocket unavailable\x1b[0m");

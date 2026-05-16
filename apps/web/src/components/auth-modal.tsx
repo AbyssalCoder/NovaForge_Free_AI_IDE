@@ -54,13 +54,14 @@ export function AuthModal({ open, onClose, onAuth }: Props) {
 
   return (
     <AnimatePresence>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-          className="glass mx-4 w-full max-w-sm rounded-xl p-6" onClick={(e) => e.stopPropagation()}>
+          role="dialog" aria-modal="true" aria-labelledby="auth-modal-title"
+          className="glass mx-4 w-full max-w-sm rounded-xl p-6" onClick={(e) => e.stopPropagation()} ref={(el) => el?.focus()} tabIndex={-1}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {mode === "login" ? <LogIn className="h-5 w-5 text-cyanForge" /> : <UserPlus className="h-5 w-5 text-mintForge" />}
-              <h3 className="text-lg font-bold text-white">{mode === "login" ? "Login" : "Sign Up"}</h3>
+              <h3 id="auth-modal-title" className="text-lg font-bold text-white">{mode === "login" ? "Login" : "Sign Up"}</h3>
             </div>
             <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
           </div>

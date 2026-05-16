@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { workspacePath } from "./security.js";
+import { config } from "./config.js";
 
 export type WorkspaceEntry = {
   path: string;
@@ -95,9 +96,34 @@ export function readWorkspaceFile(workspaceId: string, relativePath: string) {
 
 export function writeWorkspaceFile(workspaceId: string, relativePath: string, content: string) {
   const root = workspacePath(workspaceId);
+  // Enforce per-workspace quota
+  const stats = getWorkspaceStats(root);
+  const maxBytes = config.maxWorkspaceSizeMB * 1024 * 1024;
+  if (stats.totalSize + content.length > maxBytes) {
+    throw new Error(`Workspace storage quota exceeded (${config.maxWorkspaceSizeMB}MB limit).`);
+  }
+  if (stats.fileCount >= config.maxWorkspaceFiles) {
+    throw new Error(`Workspace file limit exceeded (${config.maxWorkspaceFiles} files max).`);
+  }
   const target = safeWorkspaceFile(root, relativePath);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, content, "utf8");
+}
+
+function getWorkspaceStats(root: string): { totalSize: number; fileCount: number } {
+  let totalSize = 0, fileCount = 0;
+  function walk(dir: string) {
+    try {
+      for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (item.name === "node_modules" || item.name === ".git") continue;
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) { walk(full); }
+        else { totalSize += fs.statSync(full).size; fileCount++; }
+      }
+    } catch {}
+  }
+  try { walk(root); } catch {}
+  return { totalSize, fileCount };
 }
 
 export function createWorkspaceFolder(workspaceId: string, relativePath: string) {

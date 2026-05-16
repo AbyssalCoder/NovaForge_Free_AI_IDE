@@ -91,6 +91,23 @@ db.exec(`
     content TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS token_blacklist (
+    token_hash TEXT PRIMARY KEY,
+    expires_at TEXT NOT NULL
+  );
+`);
+
+// Indexes for frequently queried columns
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+  CREATE INDEX IF NOT EXISTS idx_chat_history_project ON chat_history(project_id);
+  CREATE INDEX IF NOT EXISTS idx_chat_history_user ON chat_history(user_id);
+  CREATE INDEX IF NOT EXISTS idx_agent_runs_user ON agent_runs(user_id);
+  CREATE INDEX IF NOT EXISTS idx_agent_runs_project ON agent_runs(project_id);
+  CREATE INDEX IF NOT EXISTS idx_share_links_slug ON share_links(slug);
+  CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
 `);
 
 // Seed admin user (password: admin2005, bcrypt hash)

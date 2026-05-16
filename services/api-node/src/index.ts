@@ -15,7 +15,8 @@ import {
   optionalAuth,
   registerUser,
   requireAdmin,
-  requireAuth
+  requireAuth,
+  revokeToken
 } from "./auth.js";
 import { config } from "./config.js";
 import { db } from "./db.js";
@@ -72,6 +73,8 @@ app.post("/api/auth/register", (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Invalid registration data. Username must be 3-30 alphanumeric chars, password min 6 chars." }); return; }
   const user = registerUser(parsed.data.username, parsed.data.password, parsed.data.displayName);
   if (!user) { res.status(409).json({ error: "Username already taken." }); return; }
+  // Create per-user workspace
+  ensureStarterWorkspace(`ws-${user.id}`);
   const login = loginUser(parsed.data.username, parsed.data.password);
   res.json({ ok: true, ...login });
 });
@@ -89,7 +92,7 @@ app.get("/api/auth/me", requireAuth, (req, res) => {
   const user = (req as any).user;
   const full = db.prepare("SELECT id, username, display_name, role, plan, ai_requests_today, created_at FROM users WHERE id = ?").get(user.userId);
   const limit = checkAILimit(user.userId);
-  res.json({ user: full, aiLimit: limit });
+  res.json({ user: full, aiLimit: limit, workspaceId: `ws-${user.userId}` });
 });
 
 // ── Admin ─────────────────────────────────────────────────────────
@@ -106,9 +109,17 @@ app.delete("/api/admin/users/:id", requireAuth, requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Logout ────────────────────────────────────────────────────────
+app.post("/api/auth/logout", requireAuth, (req, res) => {
+  const token = req.headers.authorization?.slice(7);
+  if (token) revokeToken(token);
+  res.json({ ok: true });
+});
+
 // ── Projects ──────────────────────────────────────────────────────
-app.get("/api/projects", (_req, res) => {
-  const projects = db.prepare("SELECT * FROM projects ORDER BY created_at DESC").all();
+app.get("/api/projects", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const projects = db.prepare("SELECT * FROM projects WHERE owner_id = ? OR visibility = 'public' ORDER BY created_at DESC").all(userId);
   res.json({ projects });
 });
 
@@ -174,12 +185,19 @@ app.post("/api/workspace/rename", (req, res) => {
   } catch { res.status(400).json({ error: "Rename failed." }); }
 });
 
-app.get("/api/workspace/export", (req, res) => {
-  const workspaceId = String(req.query.workspaceId || "demo-js");
+app.get("/api/workspace/export", requireAuth, (req, res) => {
+  const workspaceId = String(req.query.workspaceId || `ws-${(req as any).user.userId}`);
   const entries = listWorkspace(workspaceId);
   const files: Record<string, string> = {};
+  let totalSize = 0;
+  const MAX_EXPORT = 10 * 1024 * 1024;
   for (const entry of entries.filter((e) => e.type === "file")) {
-    try { files[entry.path] = readWorkspaceFile(workspaceId, entry.path); } catch { /* skip */ }
+    try {
+      const content = readWorkspaceFile(workspaceId, entry.path);
+      totalSize += content.length;
+      if (totalSize > MAX_EXPORT) { res.status(413).json({ error: "Workspace too large to export (10MB limit)." }); return; }
+      files[entry.path] = content;
+    } catch {}
   }
   res.json({ ok: true, files });
 });
@@ -232,7 +250,8 @@ app.post("/api/agent/run", async (req, res) => {
     res.json({ runId, remaining: limit.remaining - 1, ...result, createdFiles, entries: updatedEntries });
   } catch (error) {
     db.prepare("UPDATE agent_runs SET status = ? WHERE id = ?").run("failed", runId);
-    res.status(500).json({ error: "Agent execution failed.", message: error instanceof Error ? error.message : "Unknown error" });
+    console.error("Agent execution failed:", error);
+    res.status(500).json({ error: "Agent execution failed. Please try again." });
   }
 });
 
@@ -277,14 +296,8 @@ app.get("/api/donations/recent", (_req, res) => {
 });
 
 // ── Subscriptions ─────────────────────────────────────────────────
-app.post("/api/subscriptions/upgrade", requireAuth, (req, res) => {
-  const userId = (req as any).user.userId;
-  const expiresAt = new Date(); expiresAt.setMonth(expiresAt.getMonth() + 1);
-  const existing = db.prepare("SELECT id FROM subscriptions WHERE user_id = ?").get(userId);
-  if (existing) { db.prepare("UPDATE subscriptions SET plan = 'pro', status = 'active', expires_at = ? WHERE user_id = ?").run(expiresAt.toISOString(), userId); }
-  else { db.prepare("INSERT INTO subscriptions (id, user_id, plan, expires_at) VALUES (?, ?, ?, ?)").run(nanoid(), userId, "pro", expiresAt.toISOString()); }
-  db.prepare("UPDATE users SET plan = 'pro' WHERE id = ?").run(userId);
-  res.json({ ok: true, plan: "pro", expiresAt: expiresAt.toISOString() });
+app.post("/api/subscriptions/upgrade", requireAuth, (_req, res) => {
+  res.status(501).json({ error: "Payment integration pending. Contact support for PRO access." });
 });
 
 app.get("/api/subscriptions/status", requireAuth, (req, res) => {
@@ -319,18 +332,19 @@ app.put("/api/settings", requireAuth, (req, res) => {
 });
 
 // ── Chat / Dashboard / Templates ──────────────────────────────────
-app.get("/api/chat/history", (req, res) => {
-  const projectId = String(req.query.projectId || "demo-js");
-  const history = db.prepare("SELECT role, content, created_at FROM chat_history WHERE project_id = ? ORDER BY created_at DESC LIMIT 50").all(projectId);
+app.get("/api/chat/history", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const projectId = String(req.query.projectId || `ws-${userId}`);
+  const history = db.prepare("SELECT role, content, created_at FROM chat_history WHERE project_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 50").all(projectId, userId);
   res.json({ history: (history as any[]).reverse() });
 });
 
-app.get("/api/dashboard", (req, res) => {
-  const userId = (req as any).user?.userId;
-  const projects = db.prepare("SELECT * FROM projects ORDER BY created_at DESC LIMIT 20").all();
-  const recentChats = db.prepare("SELECT role, content, created_at FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 10").all(userId || "anon");
+app.get("/api/dashboard", requireAuth, (req, res) => {
+  const userId = (req as any).user.userId;
+  const projects = db.prepare("SELECT * FROM projects WHERE owner_id = ? ORDER BY created_at DESC LIMIT 20").all(userId);
+  const recentChats = db.prepare("SELECT role, content, created_at FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 10").all(userId);
   const aiLimit = checkAILimit(userId);
-  const agentRuns = db.prepare("SELECT COUNT(*) as count FROM agent_runs WHERE user_id = ?").get(userId || "anon") as any;
+  const agentRuns = db.prepare("SELECT COUNT(*) as count FROM agent_runs WHERE user_id = ?").get(userId) as any;
   res.json({ projects, recentChats: (recentChats as any[]).reverse(), aiUsage: { remaining: aiLimit.remaining }, agentRuns: agentRuns?.count || 0 });
 });
 
@@ -367,7 +381,8 @@ app.get("/preview/:projectId/*", (req, res) => {
     res.removeHeader("X-Frame-Options");
     res.removeHeader("Cross-Origin-Resource-Policy");
     res.removeHeader("Cross-Origin-Opener-Policy");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", config.allowedOrigins[0] || "http://localhost:3000");
+    res.setHeader("Content-Security-Policy", `frame-ancestors 'self' ${config.allowedOrigins.join(" ")}`);
     res.send(content);
   } catch {
     res.status(404).send("File not found");

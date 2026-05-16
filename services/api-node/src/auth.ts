@@ -67,10 +67,23 @@ export function loginUser(username: string, password: string): { token: string; 
 
 export function verifyToken(token: string) {
   try {
+    if (isTokenRevoked(token)) return null;
     return jwt.verify(token, config.jwtSecret) as { userId: string; username: string; role: string; plan: string };
   } catch {
     return null;
   }
+}
+
+export function revokeToken(token: string) {
+  const hash = createHash("sha256").update(token).digest("hex");
+  const decoded = jwt.decode(token) as { exp?: number } | null;
+  const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : new Date(Date.now() + 7 * 86400000).toISOString();
+  db.prepare("INSERT OR IGNORE INTO token_blacklist (token_hash, expires_at) VALUES (?, ?)").run(hash, expiresAt);
+}
+
+function isTokenRevoked(token: string): boolean {
+  const hash = createHash("sha256").update(token).digest("hex");
+  return !!db.prepare("SELECT 1 FROM token_blacklist WHERE token_hash = ?").get(hash);
 }
 
 // Optional auth middleware - attaches user if token present, doesn't block
