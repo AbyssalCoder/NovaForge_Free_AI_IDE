@@ -81,18 +81,39 @@ The sandbox runs with:
 
 Provider mode defaults to `auto`.
 
-Auto mode means:
+Auto mode cascades through available providers:
 
-- If a Gemini API key is supplied in the browser BYO field or server env, use Gemini.
-- Otherwise use Ollama local models.
+1. **Gemini** – If API keys are supplied via env or browser BYO field
+2. **OpenRouter** – If `OPENROUTER_API_KEYS` are configured (supports comma-separated key rotation)
+3. **Ollama** – Local models as final fallback (fully offline)
 
 Gemini uses the official `generateContent` REST endpoint against:
-
 - `gemini-2.5-flash`
 - fallback `gemini-2.5-flash-lite`
 - fallback `gemini-2.0-flash`
 
+OpenRouter uses the chat completions API with round-robin key rotation across multiple keys for load balancing.
+
 Real API keys are never committed. Keys pasted into chat should be treated as exposed and rotated.
+
+## Security Hardening (Applied)
+
+- **SQL Injection Prevention** – Settings endpoint uses column whitelist instead of string interpolation
+- **Command Injection Prevention** – Sandbox blocks `$()` subshell and `\n` newline injection patterns
+- **WebSocket Auth** – Terminal connections validate JWT tokens when provided
+- **Helmet.js** – Security headers on all Express routes
+- **Input Sanitization** – XSS protection on user inputs
+- **Graceful Shutdown** – SIGTERM/SIGINT handlers for clean process exit
+- **Error Boundary** – React error boundary wraps the IDE for crash recovery
+- **Password Validation** – Minimum 6 characters enforced on both frontend and backend
+
+## Keyboard Shortcuts
+
+| Shortcut     | Action        |
+| ------------ | ------------- |
+| Ctrl+S       | Save file     |
+| Ctrl+Enter   | Run file      |
+| Ctrl+N       | New file tab  |
 
 ## Free Deployment
 

@@ -309,8 +309,11 @@ app.put("/api/settings", requireAuth, (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Invalid settings." }); return; }
   const existing = db.prepare("SELECT user_id FROM settings WHERE user_id = ?").get(userId);
   if (!existing) { db.prepare("INSERT INTO settings (user_id) VALUES (?)").run(userId); }
+  const allowedColumns = new Set(["theme", "editor_font_size", "ai_provider", "ai_model", "terminal_font_size", "auto_save"]);
   for (const [key, value] of Object.entries(parsed.data)) {
-    if (value !== undefined) { db.prepare(`UPDATE settings SET ${key} = ? WHERE user_id = ?`).run(value, userId); }
+    if (value !== undefined && allowedColumns.has(key)) {
+      db.prepare(`UPDATE settings SET ${key} = ? WHERE user_id = ?`).run(value, userId);
+    }
   }
   res.json({ ok: true, settings: db.prepare("SELECT * FROM settings WHERE user_id = ?").get(userId) });
 });
@@ -383,3 +386,12 @@ attachTerminal(server);
 server.listen(config.port, () => {
   console.log(`NovaForge Node API listening on http://localhost:${config.port}`);
 });
+
+// Graceful shutdown
+function shutdown() {
+  console.log("Shutting down gracefully...");
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(1), 5000);
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

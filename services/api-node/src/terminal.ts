@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import http from "node:http";
 import { WebSocketServer } from "ws";
 import { assertCommandAllowed, workspacePath } from "./security.js";
+import { verifyToken } from "./auth.js";
 
 export function attachTerminal(server: http.Server) {
   const wss = new WebSocketServer({ server, path: "/ws" });
@@ -9,6 +10,17 @@ export function attachTerminal(server: http.Server) {
   wss.on("connection", (socket, request) => {
     const url = new URL(request.url || "", "http://localhost");
     const workspace = url.searchParams.get("workspace") || "demo-js";
+    const token = url.searchParams.get("token");
+
+    // Auth check - allow if valid token or no token (dev mode / anonymous)
+    if (token) {
+      const user = verifyToken(token);
+      if (!user) {
+        socket.send("Authentication failed.");
+        socket.close();
+        return;
+      }
+    }
     const cwd = workspacePath(workspace);
 
     socket.on("message", (raw) => {

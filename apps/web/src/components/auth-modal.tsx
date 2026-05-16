@@ -90,7 +90,7 @@ export function AuthModal({ open, onClose, onAuth }: Props) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={4}
+              minLength={6}
               className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:border-cyanForge/60 focus:outline-none"
             />
 
@@ -111,7 +111,7 @@ export function AuthModal({ open, onClose, onAuth }: Props) {
 
           <div className="mt-3 flex items-center gap-2 rounded-md border border-slate-800 bg-slate-900/50 p-2 text-[10px] text-slate-500">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-mintForge" />
-            Admin? Login with username: admin / password: admin2005
+            Free to use. Sign up to start coding with AI.
           </div>
         </motion.div>
       </motion.div>

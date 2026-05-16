@@ -26,8 +26,12 @@ export function TerminalPanel() {
       terminal.write("\x1b[36m❯\x1b[0m ");
     };
     socket.onmessage = (event) => {
-      terminal.write(String(event.data).replace(/\n/g, "\r\n"));
-      terminal.write("\r\n\x1b[36m❯\x1b[0m ");
+      const data = String(event.data);
+      terminal.write(data.replace(/\n/g, "\r\n"));
+      // Only show prompt after exit lines
+      if (data.includes("exit ")) {
+        terminal.write("\r\n\x1b[36m❯\x1b[0m ");
+      }
     };
     socket.onclose = () => {
       setConnected(false);

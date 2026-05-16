@@ -15,6 +15,6 @@ export const config = {
   ollamaModel: process.env.OLLAMA_MODEL || "qwen2.5-coder:7b",
   geminiApiKeys: (process.env.GEMINI_API_KEYS || "").split(",").map((key) => key.trim()).filter(Boolean),
   geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-  openRouterApiKey: process.env.OPENROUTER_API_KEY || "",
+  openRouterApiKeys: (process.env.OPENROUTER_API_KEYS || process.env.OPENROUTER_API_KEY || "").split(",").map(k => k.trim()).filter(Boolean),
   openRouterModel: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat:free"
 };

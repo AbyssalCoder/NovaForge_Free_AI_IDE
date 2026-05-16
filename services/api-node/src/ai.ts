@@ -57,7 +57,7 @@ export function getProviderSummary() {
   return {
     defaultProvider: pickAutoProvider(),
     hasServerGeminiKey: config.geminiApiKeys.length > 0,
-    hasOpenRouterKey: Boolean(config.openRouterApiKey),
+    hasOpenRouterKey: config.openRouterApiKeys.length > 0,
     ollamaModel: config.ollamaModel,
     geminiModel: config.geminiModel,
     openRouterModel: config.openRouterModel
@@ -66,6 +66,7 @@ export function getProviderSummary() {
 
 function pickAutoProvider(browserKey?: string) {
   if (browserKey || config.geminiApiKeys.length > 0) return "gemini";
+  if (config.openRouterApiKeys.length > 0) return "openrouter";
   return "ollama";
 }
 
@@ -133,7 +134,7 @@ async function callGemini(prompt: string, browserKey?: string): Promise<AgentRes
 }
 
 async function callOpenRouter(prompt: string, browserKey?: string): Promise<AgentResult> {
-  const key = browserKey || config.openRouterApiKey;
+  const key = browserKey || config.openRouterApiKeys[Math.floor(Math.random() * config.openRouterApiKeys.length)];
   if (!key) {
     return {
       message: "OpenRouter/DeepSeek selected, but no BYO key was provided.",

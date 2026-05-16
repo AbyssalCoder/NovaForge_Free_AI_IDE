@@ -37,14 +37,15 @@ function verifyPassword(password: string, hash: string): boolean {
 }
 
 export function registerUser(username: string, password: string, displayName?: string): UserRow | null {
-  const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+  const lowerUsername = username.toLowerCase();
+  const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(lowerUsername);
   if (existing) return null;
 
   const id = nanoid();
   const hash = hashPassword(password);
   db.prepare(
     "INSERT INTO users (id, username, password_hash, display_name, role, plan) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(id, username.toLowerCase(), hash, displayName || username, "user", "free");
+  ).run(id, lowerUsername, hash, displayName || username, "user", "free");
 
   return db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow;
 }

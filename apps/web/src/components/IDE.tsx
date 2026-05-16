@@ -138,6 +138,14 @@ export default function IDE() {
         saveActiveFile();
         showToast("File saved");
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runActiveFile();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+        e.preventDefault();
+        setActiveTab("File");
+      }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -218,6 +226,7 @@ export default function IDE() {
   }
 
   async function deleteActiveFile() {
+    if (!window.confirm(`Delete ${activeFile}?`)) return;
     try {
       await fetch(`${API_URL}/api/workspace/entry`, {
         method: "DELETE",
@@ -263,9 +272,18 @@ export default function IDE() {
 
   function updateFile(value: string | undefined) {
     setFiles((c) => ({ ...c, [activeFile]: value || "" }));
-    // Auto-save debounce
+    // Auto-save debounce - use current values via refs to avoid stale closures
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => saveActiveFile(), 2000);
+    const fileToSave = activeFile;
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await fetch(`${API_URL}/api/workspace/file`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ workspaceId: "demo-js", path: fileToSave, content: value || "" })
+        });
+      } catch {}
+    }, 2000);
   }
 
   function handleLogout() {
@@ -456,7 +474,7 @@ export default function IDE() {
                     className="w-52 rounded border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300" />
                 </div>
                 {previewUrl ? (
-                  <iframe title="NovaForge preview" src={previewUrl} className="h-full min-h-[170px] w-full bg-white" sandbox="allow-scripts allow-same-origin" />
+                  <iframe title="NovaForge preview" src={previewUrl} className="h-full min-h-[170px] w-full bg-white" sandbox="allow-scripts" />
                 ) : (
                   <div className="flex h-[170px] items-center justify-center text-xs text-slate-500">
                     Enter a URL above to preview
@@ -487,7 +505,7 @@ export default function IDE() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-16 left-1/2 z-50 -translate-x-1/2 animate-bounce rounded-lg border border-cyanForge/40 bg-slate-900/95 px-4 py-2 text-sm text-cyanForge shadow-lg backdrop-blur">
+        <div className="fixed bottom-16 left-1/2 z-50 -translate-x-1/2 animate-pulse rounded-lg border border-cyanForge/40 bg-slate-900/95 px-4 py-2 text-sm text-cyanForge shadow-lg backdrop-blur">
           {toast}
         </div>
       )}
@@ -618,7 +636,7 @@ function ActionButton({ icon, label, onClick, accent }: { icon: React.ReactNode;
 /* ─── Helpers ─── */
 
 function commandFor(file: string) {
-  if (file.endsWith(".ts") || file.endsWith(".tsx")) return { language: "typescript", command: `node -e "console.log('TypeScript saved. Run build from terminal.')" ` };
+  if (file.endsWith(".ts") || file.endsWith(".tsx")) return { language: "typescript", command: `npx tsx ${quote(file)}` };
   if (file.endsWith(".py")) return { language: "python", command: `python ${quote(file)}` };
   if (file.endsWith(".c")) return { language: "c", command: `gcc ${quote(file)} -o main && ./main` };
   if (file.endsWith(".cpp")) return { language: "cpp", command: `g++ ${quote(file)} -o main && ./main` };

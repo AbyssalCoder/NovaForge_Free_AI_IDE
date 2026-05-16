@@ -34,6 +34,8 @@ const deniedPatterns = [
   /\bpowershell\b/i,
   /\bcmd\s*\/c\b/i,
   /[;|`]/,
+  /\$\(/,
+  /\n/,
   /\.\./
 ];
 

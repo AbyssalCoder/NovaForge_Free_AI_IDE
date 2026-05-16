@@ -1,71 +1,85 @@
-# NovaForge
+# NovaForge – Free AI Cloud IDE & Online Compiler
 
-NovaForge is a zero-budget, browser-based AI Cloud IDE and autonomous coding agent MVP. It is designed to run locally without paid AI APIs by default, using Ollama-compatible local models such as Qwen Coder or DeepSeek Coder.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node 22+](https://img.shields.io/badge/Node-22%2B-green)](https://nodejs.org)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 
-## What Is Included
+NovaForge is a **free, open-source, AI-powered cloud IDE** and autonomous coding agent. Write, run, and preview code in **8+ languages** directly in your browser — no signup required. Powered by free AI providers (Gemini, OpenRouter, Ollama).
 
-- Next.js + TailwindCSS frontend
-- Monaco editor
-- xterm.js WebSocket terminal
-- Framer Motion animated dark neon interface
-- Node.js + Express API
-- Python FastAPI analysis service
-- SQLite database
-- NextAuth Google login scaffold
-- Ollama local AI support
-- Bring-your-own-key Gemini/OpenRouter/DeepSeek-compatible support
-- Docker sandbox runner with CPU/RAM limits
-- Waitlist table for future PRO plan
-- Donation and GitHub Sponsors placeholders
-- Public sharing/fork/clone UI placeholders
-- Demo projects for Python, C, C++, Java, Rust, HTML, CSS, and JavaScript
-- GitHub Actions CI
+## Features
 
-## Important Security Note
+- **AI Coding Agent** – Autonomous multi-file project generation with planning, coding, and review steps
+- **Multi-Language Support** – Python, JavaScript, TypeScript, C, C++, Java, Rust, HTML/CSS/JS
+- **Monaco Editor** – VS Code-grade editor with syntax highlighting, IntelliSense, and themes
+- **Live Preview** – Instant HTML/CSS/JS preview in an embedded iframe
+- **WebSocket Terminal** – Full xterm.js terminal with authenticated connections
+- **Docker Sandbox** – Isolated code execution with CPU/RAM limits and network isolation
+- **Three AI Providers** – Gemini (free), OpenRouter (free), Ollama (local/offline)
+- **API Key Rotation** – Built-in round-robin load balancing across multiple API keys
+- **Project Templates** – Quick-start templates for all supported languages
+- **Dark Neon UI** – Framer Motion animated interface with cyan/amber/violet/mint themes
+- **Auth System** – JWT-based authentication with user management
+- **Auto-Save** – Debounced file saving with stale closure protection
+- **Keyboard Shortcuts** – Ctrl+S (save), Ctrl+Enter (run), Ctrl+N (new file)
+- **Error Boundary** – Graceful crash recovery with reload option
+- **SEO Optimized** – Full Open Graph, Twitter Cards, JSON-LD structured data, sitemap
+- **Production Docker** – Multi-stage Dockerfile with health checks
 
-Do not commit real API keys. Any keys pasted into chat, screenshots, repositories, or shared logs should be rotated in the provider dashboard. Add keys only to local `.env` files or the browser BYO-key field.
+## Security
+
+- SQL injection protection via parameterized queries and column whitelists
+- Command injection prevention (subshell & newline blocking)
+- WebSocket terminal authentication
+- Helmet.js security headers
+- Input sanitization and validation
+- Sandbox network isolation
+
+> **Important:** Do not commit real API keys. Any keys in screenshots, chats, or repos should be rotated. Use `.env` files only.
 
 ## Requirements
 
 - Node.js 22+
-- Python 3.12+
-- Docker Desktop for isolated code execution and compiler images
-- Ollama for fully local AI
+- Python 3.12+ (optional, for analysis service)
+- Docker Desktop (optional, for isolated sandbox execution)
+- Ollama (optional, for fully local/offline AI)
 
-Docker is optional for opening the IDE, but required for real isolated sandboxes.
-
-Install language compiler images:
-
-```powershell
-.\scripts\setup-compilers.ps1
-```
-
-## Setup
+## Quick Start
 
 ```powershell
 cd "$env:USERPROFILE\Desktop\NovaForge_Free_AI_IDE"
 npm install
-python -m pip install -r services/api-python/requirements.txt
 Copy-Item .env.example .env
 npm run dev
 ```
 
 Open:
 
-- Web IDE: http://localhost:3000
-- Node API: http://localhost:8787/health
-- Python API: http://localhost:8788/health
+| Service   | URL                             |
+| --------- | ------------------------------- |
+| Web IDE   | http://localhost:3000            |
+| Node API  | http://localhost:8787/health     |
+| Python API| http://localhost:8788/health     |
 
-## Local AI With No Paid APIs
+## AI Configuration
 
-Install Ollama and pull a coding model:
+### Free AI (No Cost)
+
+**Gemini** – Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey):
+```env
+GEMINI_API_KEYS=your-key-here
+```
+
+**OpenRouter** – Get free keys at [openrouter.ai](https://openrouter.ai):
+```env
+OPENROUTER_API_KEYS=key1,key2,key3
+```
+
+### Local AI (Offline)
 
 ```powershell
 ollama pull qwen2.5-coder:7b
 ollama serve
 ```
-
-Then keep:
 
 ```env
 AI_PROVIDER=auto
@@ -73,30 +87,46 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=qwen2.5-coder:7b
 ```
 
-Auto mode uses Gemini when a BYO Gemini key is present, otherwise Ollama.
+Auto mode cascades: Gemini → OpenRouter → Ollama.
 
-## Bring Your Own API Key
+## Docker Sandbox
 
-NovaForge supports optional browser-session keys for Gemini/OpenRouter-compatible providers. Use the Gemini AI Studio button inside the app or visit:
+Install compiler images:
 
-https://aistudio.google.com/app/apikey
+```powershell
+.\scripts\setup-compilers.ps1
+```
 
-## Sandbox Execution
+Sandbox features:
+- Network disabled
+- 1 CPU / 512 MB RAM limit
+- 30-second timeout
+- Per-project workspace volume
+- Command allowlist
 
-The Node API exposes `/api/sandbox/run`. It uses Docker with:
+## Architecture
 
-- network disabled
-- 1 CPU
-- 512 MB RAM
-- 30 second timeout
-- per-project workspace volume
-- command allowlist
+```
+apps/web/          → Next.js 15 frontend (port 3000)
+services/api-node/ → Express API + SQLite (port 8787)
+services/api-python/ → FastAPI analysis (port 8788)
+demo-projects/     → Starter code for all languages
+```
 
-This is still an MVP sandbox. For public multi-user hosting, use dedicated worker machines, stronger filesystem isolation, per-user quotas, and never mount host-sensitive paths.
+## Deployment
 
-## Free Deployment
+See [docs/FREE_DEPLOYMENT.md](docs/FREE_DEPLOYMENT.md) for free hosting on Vercel + Render.
 
-See [FREE_DEPLOYMENT.md](docs/FREE_DEPLOYMENT.md).
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT
 
 Recommended split:
 
