@@ -15,7 +15,7 @@ services:
       - key: ALLOWED_ORIGINS
         value: https://codeabyss.vercel.app,https://web-cyan-psi-exrofqp3g8.vercel.app
       - key: DATABASE_URL
-        value: postgresql://postgres.nnivlxbtuovxytwleotf:AOsdlQAWyW4ETUoA@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+        value: postgresql://postgres:AOsdlQAWyW4ETUoA@db.nnivlxbtuovxytwleotf.supabase.co:5432/postgres
       - key: NTFY_TOPIC
         value: codeabyss-admin-alerts
       - key: OPENROUTER_API_KEYS
