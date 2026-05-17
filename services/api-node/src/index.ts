@@ -34,7 +34,10 @@ import {
 
 const app = express();
 app.use(helmet({ contentSecurityPolicy: false, frameguard: false }));
-app.use(cors({ origin: config.allowedOrigins, credentials: true }));
+
+// Always allow the production frontend + any env-configured origins
+const allowedOrigins = [...new Set([...config.allowedOrigins, "https://codeabyss.vercel.app"])];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(optionalAuth);
 

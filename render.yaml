@@ -13,9 +13,9 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: https://web-cyan-psi-exrofqp3g8.vercel.app
+        value: https://codeabyss.vercel.app,https://web-cyan-psi-exrofqp3g8.vercel.app
       - key: NTFY_TOPIC
-        value: novaforge-admin-alerts
+        value: codeabyss-admin-alerts
       - key: OPENROUTER_API_KEYS
         sync: false
     healthCheckPath: /health
