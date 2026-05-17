@@ -474,6 +474,20 @@ server.listen(config.port, () => {
   console.log(`CodeAbyss Node API listening on http://localhost:${config.port}`);
 });
 
+// Self-ping to prevent Render free tier from sleeping (every 14 minutes)
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+if (RENDER_URL) {
+  setInterval(async () => {
+    try {
+      const res = await fetch(`${RENDER_URL}/api/health`);
+      console.log(`[keep-alive] pinged ${RENDER_URL} → ${res.status}`);
+    } catch (e) {
+      console.log(`[keep-alive] ping failed: ${(e as Error).message}`);
+    }
+  }, 14 * 60 * 1000); // 14 minutes
+  console.log("[keep-alive] self-ping enabled (every 14 min)");
+}
+
 // Graceful shutdown
 function shutdown() {
   console.log("Shutting down gracefully...");
