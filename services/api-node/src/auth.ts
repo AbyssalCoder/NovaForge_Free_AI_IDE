@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import jwt from "jsonwebtoken";
 import { nanoid } from "nanoid";
 import { config } from "./config.js";
-import { db } from "./db.js";
+import { queryOne, queryAll, execute } from "./db.js";
 import type { Request, Response, NextFunction } from "express";
 
 export type UserRow = {
@@ -36,22 +36,23 @@ function verifyPassword(password: string, hash: string): boolean {
   }
 }
 
-export function registerUser(username: string, password: string, displayName?: string): UserRow | null {
+export async function registerUser(username: string, password: string, displayName?: string): Promise<UserRow | null> {
   const lowerUsername = username.toLowerCase();
-  const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(lowerUsername);
+  const existing = await queryOne("SELECT id FROM users WHERE username = $1", [lowerUsername]);
   if (existing) return null;
 
   const id = nanoid();
   const hash = hashPassword(password);
-  db.prepare(
-    "INSERT INTO users (id, username, password_hash, display_name, role, plan) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(id, lowerUsername, hash, displayName || username, "user", "free");
+  await execute(
+    "INSERT INTO users (id, username, password_hash, display_name, role, plan) VALUES ($1, $2, $3, $4, $5, $6)",
+    [id, lowerUsername, hash, displayName || username, "user", "free"]
+  );
 
-  return db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow;
+  return await queryOne<UserRow>("SELECT * FROM users WHERE id = $1", [id]) ?? null;
 }
 
-export function loginUser(username: string, password: string): { token: string; user: Omit<UserRow, "password_hash"> } | null {
-  const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username.toLowerCase()) as UserRow | undefined;
+export async function loginUser(username: string, password: string): Promise<{ token: string; user: Omit<UserRow, "password_hash"> } | null> {
+  const user = await queryOne<UserRow>("SELECT * FROM users WHERE username = $1", [username.toLowerCase()]);
   if (!user) return null;
   if (!verifyPassword(password, user.password_hash)) return null;
 
@@ -67,23 +68,33 @@ export function loginUser(username: string, password: string): { token: string; 
 
 export function verifyToken(token: string) {
   try {
-    if (isTokenRevoked(token)) return null;
+    if (isTokenRevokedSync(token)) return null;
     return jwt.verify(token, config.jwtSecret) as { userId: string; username: string; role: string; plan: string };
   } catch {
     return null;
   }
 }
 
-export function revokeToken(token: string) {
+// Token blacklist cache for synchronous checks in middleware
+const revokedTokens = new Set<string>();
+
+export async function revokeToken(token: string) {
   const hash = createHash("sha256").update(token).digest("hex");
   const decoded = jwt.decode(token) as { exp?: number } | null;
   const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000).toISOString() : new Date(Date.now() + 7 * 86400000).toISOString();
-  db.prepare("INSERT OR IGNORE INTO token_blacklist (token_hash, expires_at) VALUES (?, ?)").run(hash, expiresAt);
+  await execute("INSERT INTO token_blacklist (token_hash, expires_at) VALUES ($1, $2) ON CONFLICT DO NOTHING", [hash, expiresAt]);
+  revokedTokens.add(hash);
 }
 
-function isTokenRevoked(token: string): boolean {
+function isTokenRevokedSync(token: string): boolean {
   const hash = createHash("sha256").update(token).digest("hex");
-  return !!db.prepare("SELECT 1 FROM token_blacklist WHERE token_hash = ?").get(hash);
+  return revokedTokens.has(hash);
+}
+
+// Load revoked tokens into cache on startup
+export async function loadRevokedTokens() {
+  const rows = await queryAll<{ token_hash: string }>("SELECT token_hash FROM token_blacklist WHERE expires_at > NOW()");
+  for (const row of rows) revokedTokens.add(row.token_hash);
 }
 
 // Optional auth middleware - attaches user if token present, doesn't block
@@ -125,10 +136,10 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 // Check AI rate limits
-export function checkAILimit(userId?: string): { allowed: boolean; remaining: number } {
+export async function checkAILimit(userId?: string): Promise<{ allowed: boolean; remaining: number }> {
   if (!userId) return { allowed: true, remaining: 50 }; // anonymous gets 50/day
 
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as UserRow | undefined;
+  const user = await queryOne<UserRow>("SELECT * FROM users WHERE id = $1", [userId]);
   if (!user) return { allowed: true, remaining: 50 };
 
   // Admin bypasses limits
@@ -136,9 +147,9 @@ export function checkAILimit(userId?: string): { allowed: boolean; remaining: nu
 
   // Reset counter if new day
   const today = new Date().toISOString().split("T")[0];
-  const resetDay = user.ai_requests_reset.split("T")[0];
+  const resetDay = new Date(user.ai_requests_reset).toISOString().split("T")[0];
   if (today !== resetDay) {
-    db.prepare("UPDATE users SET ai_requests_today = 0, ai_requests_reset = CURRENT_TIMESTAMP WHERE id = ?").run(userId);
+    await execute("UPDATE users SET ai_requests_today = 0, ai_requests_reset = CURRENT_TIMESTAMP WHERE id = $1", [userId]);
     return { allowed: true, remaining: user.plan === "pro" ? 500 : 50 };
   }
 
@@ -147,15 +158,15 @@ export function checkAILimit(userId?: string): { allowed: boolean; remaining: nu
   return { allowed: remaining > 0, remaining };
 }
 
-export function incrementAIUsage(userId: string) {
-  db.prepare("UPDATE users SET ai_requests_today = ai_requests_today + 1 WHERE id = ?").run(userId);
+export async function incrementAIUsage(userId: string) {
+  await execute("UPDATE users SET ai_requests_today = ai_requests_today + 1 WHERE id = $1", [userId]);
 }
 
-export function getAnalytics() {
-  const users = (db.prepare("SELECT COUNT(*) as count FROM users").get() as any).count;
-  const projects = (db.prepare("SELECT COUNT(*) as count FROM projects").get() as any).count;
-  const agentRuns = (db.prepare("SELECT COUNT(*) as count FROM agent_runs").get() as any).count;
-  const donations = (db.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM donations").get() as any).total;
-  const proUsers = (db.prepare("SELECT COUNT(*) as count FROM users WHERE plan = 'pro'").get() as any).count;
+export async function getAnalytics() {
+  const users = (await queryOne<{ count: number }>("SELECT COUNT(*) as count FROM users"))?.count || 0;
+  const projects = (await queryOne<{ count: number }>("SELECT COUNT(*) as count FROM projects"))?.count || 0;
+  const agentRuns = (await queryOne<{ count: number }>("SELECT COUNT(*) as count FROM agent_runs"))?.count || 0;
+  const donations = (await queryOne<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM donations"))?.total || 0;
+  const proUsers = (await queryOne<{ count: number }>("SELECT COUNT(*) as count FROM users WHERE plan = 'pro'"))?.count || 0;
   return { users, projects, agentRuns, totalDonations: donations, proUsers };
 }

@@ -13,7 +13,7 @@ if (jwtSecret === "CodeAbyss-dev-only-change-me" && process.env.NODE_ENV === "pr
 export const config = {
   port: Number(process.env.NODE_API_PORT || 8787),
   jwtSecret,
-  sqlitePath: process.env.SQLITE_PATH || path.resolve(process.cwd(), "data/CodeAbyss.db"),
+  databaseUrl: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/codeabyss",
   workspaceRoot: process.env.WORKSPACE_ROOT || path.resolve(process.cwd(), "workspaces"),
   allowedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000").split(","),
   pythonServiceUrl: process.env.PYTHON_SERVICE_URL || "http://127.0.0.1:8788",
