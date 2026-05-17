@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CodeAbyss – Free AI Cloud IDE & Online Code Editor",
-  description: "CodeAbyss is a free, open-source AI-powered cloud IDE and online compiler. Write, run, and deploy code in 8+ languages with an autonomous AI coding agent. No signup required.",
-  keywords: ["online compiler", "online IDE", "cloud IDE", "AI code editor", "free IDE", "code agent", "AI code", "online code editor", "web IDE", "CodeAbyss", "free compiler", "coding playground", "browser IDE"],
-  authors: [{ name: "CodeAbyss", url: "https://github.com/AbyssalCoder/CodeAbyss_Free_AI_IDE" }],
+  title: "CodeAbyss – Free Online Compiler & AI IDE | Run Code Online",
+  description: "Free online compiler and AI-powered IDE. Run Python, JavaScript, Java, C++, Rust, TypeScript code online instantly. AI coding agent writes code for you. No download, no signup. Best free online IDE and agentic coding platform.",
+  keywords: ["online compiler", "online IDE", "run code online", "free online compiler", "compile code online", "online code editor", "AI IDE", "agentic IDE", "cloud IDE", "free IDE", "AI code editor", "code agent", "python compiler online", "java compiler online", "c++ compiler online", "javascript compiler online", "rust compiler online", "browser IDE", "web IDE", "CodeAbyss", "free compiler", "coding playground", "run python online", "run java online", "online coding", "code online free", "AI coding assistant", "cursor alternative free", "replit alternative free"],
+  authors: [{ name: "CodeAbyss", url: "https://github.com/AbyssalCoder/CodeAbyss_AI_IDE" }],
   openGraph: {
     title: "CodeAbyss – Free AI Cloud IDE & Online Compiler",
     description: "Free AI-powered cloud IDE. Write, run & deploy code in 8+ languages with an autonomous coding agent. Python, JavaScript, TypeScript, Java, C++, Rust, HTML/CSS.",
