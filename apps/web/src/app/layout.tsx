@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="google-site-verification" content="" />
+        <meta name="google-site-verification" content="darGlGX7WYwkygmGlEqHpSoPlujwbwc8wu1JCTZcVMg" />
         <link rel="canonical" href="https://codeabyss.vercel.app" />
         <script
           type="application/ld+json"
