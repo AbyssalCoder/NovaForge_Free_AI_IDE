@@ -126,11 +126,11 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 └─────────────────┼───────────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────────┐
-│   Express API (Render)                           │
-│   ┌────────┐ ┌──────────┐ ┌──────────────────┐ │
-│   │ SQLite │ │ Terminal │ │ Docker Sandbox   │ │
-│   │   DB   │ │   WS     │ │ (code execution) │ │
-│   └────────┘ └──────────┘ └──────────────────┘ │
+│   Express API (Render – Docker)                  │
+│   ┌──────────┐ ┌──────────┐ ┌────────────────┐ │
+│   │ Postgres │ │ Terminal │ │ Code Execution │ │
+│   │(Supabase)│ │   WS     │ │ (direct + safe)│ │
+│   └──────────┘ └──────────┘ └────────────────┘ │
 │   ┌──────────────────────────────────────────┐  │
 │   │ AI Agent (Gemini / OpenRouter / Ollama)  │  │
 │   └──────────────────────────────────────────┘  │
@@ -139,17 +139,16 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 
 ---
 
-## 🐳 Docker Sandbox
+## � Code Execution
 
-```bash
-./scripts/setup-compilers.ps1
-```
+Supported languages: **JavaScript, TypeScript, Python, C, C++, Java, Rust**
 
-- 🔒 Network disabled (no internet for user code)
-- ⚡ 1 CPU / 512 MB RAM limit
-- ⏱️ 30-second execution timeout
-- 📁 Per-project workspace volume
-- ✅ Command allowlist
+- 🔒 Sanitized environment (no access to secrets/env vars)
+- ⚡ Strict command allowlist + deny patterns
+- ⏱️ 15-second execution timeout
+- 📁 Per-project workspace isolation
+- 🐳 Docker sandbox available locally (full isolation)
+- 🏗️ Direct execution on deploy (compilers in container)
 
 ---
 
@@ -206,9 +205,9 @@ scripts/               → Setup scripts, smoke tests
 | Editor | Monaco Editor (VS Code engine) |
 | Terminal | xterm.js + WebSocket |
 | Backend | Express 4, Node.js 22 |
-| Database | SQLite (via node:sqlite) |
+| Database | PostgreSQL (Supabase) |
 | AI | Google Gemini, OpenRouter, Ollama |
-| Sandbox | Docker with resource limits |
+| Sandbox | Docker / Direct execution (Python, GCC, JDK, Rust) |
 | Animation | Framer Motion |
 | Auth | JWT + bcrypt |
 | Deploy | Vercel + Render (free tier) |

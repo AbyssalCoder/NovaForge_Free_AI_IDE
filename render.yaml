@@ -1,12 +1,11 @@
 services:
   - type: web
     name: novaforge-api
-    runtime: node
+    runtime: docker
     region: oregon
     plan: free
     rootDir: services/api-node
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: node dist/index.js
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
