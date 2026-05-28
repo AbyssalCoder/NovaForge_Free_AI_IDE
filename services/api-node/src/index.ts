@@ -506,6 +506,17 @@ if (RENDER_URL) {
   console.log("[keep-alive] self-ping enabled (every 14 min)");
 }
 
+// Supabase keep-alive: prevent free-tier DB from pausing (every 3 hours)
+setInterval(async () => {
+  try {
+    await queryOne("SELECT 1 AS keep_alive");
+    console.log("[keep-alive] Supabase DB pinged successfully");
+  } catch (e) {
+    console.log(`[keep-alive] Supabase ping failed: ${(e as Error).message}`);
+  }
+}, 3 * 60 * 60 * 1000); // 3 hours
+console.log("[keep-alive] Supabase DB ping enabled (every 3 hours)");
+
 // Graceful shutdown
 function shutdown() {
   console.log("Shutting down gracefully...");
